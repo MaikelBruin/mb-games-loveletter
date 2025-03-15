@@ -26,8 +26,7 @@ class MainActivity : ComponentActivity() {
             LoveLetterTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     NavigationGraph(navHostController = navHostController)
                 }
@@ -42,12 +41,18 @@ fun NavigationGraph(
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
-            HomeScreen(onNavigateToAbout = {
+            HomeScreen(onNavigateToNewGame = {
+                navHostController.navigate(Screen.PlayerListScreen.route)
+            }, onNavigateToHelp = {
+                navHostController.navigate(Screen.HelpScreen.route)
+            }, onNavigateToAbout = {
                 navHostController.navigate(Screen.AboutScreen.route)
             })
         }
         composable(Screen.AboutScreen.route) {
-            AboutScreen()
+            AboutScreen(onClick = {
+                navHostController.navigate(Screen.HomeScreen.route)
+            })
         }
     }
 }

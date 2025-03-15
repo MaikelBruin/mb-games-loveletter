@@ -1,5 +1,6 @@
 package mb.games.loveletter.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,23 +22,44 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import mb.games.loveletter.data.MenuItem
+import mb.games.loveletter.data.aboutMenuItem
+import mb.games.loveletter.data.helpMenuItem
 import mb.games.loveletter.data.homeMenuItems
+import mb.games.loveletter.data.newGameMenuItem
 
 @Composable
 fun HomeScreen(
+    onNavigateToNewGame: () -> Unit,
+    onNavigateToHelp: () -> Unit,
     onNavigateToAbout: () -> Unit
 ) {
-    MenuView()
+    MenuView(onNavigateToNewGame, onNavigateToHelp, onNavigateToAbout)
 }
 
 @Composable
-fun MenuView() {
+fun MenuView(
+    onNavigateToNewGame: () -> Unit,
+    onNavigateToHelp: () -> Unit,
+    onNavigateToAbout: () -> Unit
+) {
     Surface(
         color = MaterialTheme.colorScheme.background
     ) {
         LazyColumn {
             items(homeMenuItems) { menuItem ->
-                MenuItem(menuItem = menuItem)
+                MenuItemView(menuItem = menuItem, onClick = {
+                    when (menuItem.name) {
+                        "New game" -> {
+                            onNavigateToNewGame()
+                        }
+                        "Help" -> {
+                            onNavigateToHelp()
+                        }
+                        else -> {
+                            onNavigateToAbout()
+                        }
+                    }
+                })
             }
         }
     }
@@ -45,7 +67,7 @@ fun MenuView() {
 }
 
 @Composable
-fun MenuItem(menuItem: MenuItem) {
+fun MenuItemView(menuItem: MenuItem, onClick: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.background
     ) {
@@ -62,7 +84,7 @@ fun MenuItem(menuItem: MenuItem) {
                         modifier = Modifier.padding(horizontal = 8.dp),
                         contentDescription = menuItem.name
                     )
-                    Text(text = menuItem.name)
+                    Text(text = menuItem.name, Modifier.clickable { onClick() })
                 }
                 Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null)
             }
@@ -75,5 +97,5 @@ fun MenuItem(menuItem: MenuItem) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen({})
+    HomeScreen({}, {}, {})
 }
