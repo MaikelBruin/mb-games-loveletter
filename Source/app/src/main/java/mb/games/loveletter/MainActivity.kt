@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import mb.games.loveletter.screen.AboutScreen
 import mb.games.loveletter.screen.HomeScreen
 import mb.games.loveletter.screen.Screen
 import mb.games.loveletter.ui.theme.LoveLetterTheme
@@ -41,7 +42,12 @@ fun NavigationGraph(
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
-            HomeScreen()
+            HomeScreen(onNavigateToAbout = {
+                navHostController.navigate(Screen.AboutScreen.route)
+            })
+        }
+        composable(Screen.AboutScreen.route) {
+            AboutScreen()
         }
     }
 }

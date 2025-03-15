@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,47 +21,59 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import mb.games.loveletter.data.MenuItem
-import mb.games.loveletter.data.menuItems
+import mb.games.loveletter.data.homeMenuItems
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onNavigateToAbout: () -> Unit
+) {
     MenuView()
 }
 
 @Composable
 fun MenuView() {
-    LazyColumn {
-        items(menuItems) { menuItem ->
-            MenuItem(menuItem = menuItem)
+    Surface(
+        color = MaterialTheme.colorScheme.background
+    ) {
+        LazyColumn {
+            items(homeMenuItems) { menuItem ->
+                MenuItem(menuItem = menuItem)
+            }
         }
     }
+
 }
 
 @Composable
 fun MenuItem(menuItem: MenuItem) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row {
-                Icon(
-                    painter = painterResource(id = menuItem.icon),
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    contentDescription = menuItem.name
-                )
-                Text(text = menuItem.name)
+    Surface(
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row {
+                    Icon(
+                        painter = painterResource(id = menuItem.icon),
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        contentDescription = menuItem.name
+                    )
+                    Text(text = menuItem.name)
+                }
+                Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null)
             }
-            Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null)
+            Divider(color = Color.LightGray)
         }
-        Divider(color = Color.LightGray)
     }
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen({})
 }
