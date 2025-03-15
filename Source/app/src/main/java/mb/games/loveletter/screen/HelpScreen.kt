@@ -11,14 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun AboutScreen(
+fun HelpScreen(
     onClick: () -> Unit
 ) {
-    AboutView(onClick)
+    HelpView(onClick)
 }
 
 @Composable
-fun AboutView(
+fun HelpView(
     onClick: () -> Unit
 ) {
     Row(
@@ -28,12 +28,12 @@ fun AboutView(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Made from MB with love.")
+        Text(text = "What do you need help with?")
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun AboutViewPreview() {
-    AboutView({})
+fun HelpViewPreview() {
+    HelpView({})
 }
