@@ -13,10 +13,12 @@ import mb.games.loveletter.screen.HelpScreen
 import mb.games.loveletter.screen.HomeScreen
 import mb.games.loveletter.screen.NewGameScreen
 import mb.games.loveletter.screen.Screen
+import mb.games.loveletter.viewmodel.GameSessionViewModel
 
 @Composable
 fun NavigationGraph(
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    gameSessionViewModel: GameSessionViewModel = viewModel()
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
@@ -39,7 +41,7 @@ fun NavigationGraph(
             })
         }
         composable(Screen.NewGameScreen.route) {
-            NewGameScreen(navController = navHostController, viewModel = viewModel(), onStartGame = {
+            NewGameScreen(navController = navHostController, viewModel = gameSessionViewModel, onStartGame = {
                 navHostController.navigate(Screen.HomeScreen.route)
             }, onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }
@@ -53,7 +55,7 @@ fun NavigationGraph(
             )
         ){entry->
             val id = if(entry.arguments != null)  entry.arguments!!.getInt("id") else 0
-            AddEditPlayerDetailView(id = id, viewModel = viewModel() , navController = navHostController)
+            AddEditPlayerDetailView(id = id, viewModel = gameSessionViewModel , navController = navHostController)
         }
     }
 }
