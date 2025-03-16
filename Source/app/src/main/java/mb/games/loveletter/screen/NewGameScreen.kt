@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.ui.theme.Bordeaux
+import mb.games.loveletter.ui.theme.Orange
 import mb.games.loveletter.viewmodel.GameSessionViewModel
 
 @Composable
@@ -64,11 +67,12 @@ fun NewGameView(
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     Scaffold(scaffoldState = scaffoldState,
+        backgroundColor = Bordeaux,
         topBar = { AppBarView(title = "Players") },
         floatingActionButton = {
             FloatingActionButton(modifier = Modifier.padding(all = 20.dp),
-                contentColor = Color.White,
-                backgroundColor = Color.Black,
+                contentColor = Color.Black,
+                backgroundColor = Color.LightGray,
                 onClick = {
                     Toast.makeText(context, "FAButton Clicked", Toast.LENGTH_LONG).show()
                     navController.navigate(Screen.AddPlayerScreen.route + "/0")
@@ -87,7 +91,7 @@ fun NewGameView(
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(text = "Players")
             }
@@ -145,18 +149,49 @@ fun NewGameView(
 @Composable
 fun PlayerItem(player: Player, onClick: () -> Unit) {
     Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Orange, //Card background color
+            contentColor = Color.Black  //Card content color,e.g.text
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp, start = 8.dp, end = 8.dp)
             .clickable {
                 onClick()
-            }, elevation = CardDefaults.cardElevation(
-            defaultElevation = 10.dp
+            },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp,
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = player.name, fontWeight = FontWeight.ExtraBold)
-            Checkbox(checked = player.isHuman, onCheckedChange = null)
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .background(color = Orange)
+        ) {
+            Row {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(text = "Name:")
+                }
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(text = player.name, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+            Row {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(text = "Is human?")
+                }
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Checkbox(checked = player.isHuman, onCheckedChange = null)
+                }
+            }
         }
     }
 }
