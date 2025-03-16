@@ -9,7 +9,7 @@ import androidx.room.TypeConverters
 @Database(entities = [Player::class, GameSession::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class GameDatabase : RoomDatabase() {
-    abstract fun gameDao(): GameDao
+    abstract fun gameDao(): GameSessionDao
 
     companion object {
         @Volatile
