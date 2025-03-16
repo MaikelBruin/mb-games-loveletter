@@ -9,14 +9,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import mb.games.loveletter.Graph
 import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.Player
 
-class GameSessionViewModel(private val gameSessionRepository: GameSessionRepository) : ViewModel() {
+class GameSessionViewModel(private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository) :
+    ViewModel() {
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
-    var currentTurnState by mutableIntStateOf(0)
 
     fun onPlayerNameChanged(newName: String) {
         playerNameState = newName
@@ -24,10 +25,6 @@ class GameSessionViewModel(private val gameSessionRepository: GameSessionReposit
 
     fun onPlayerIsHumanChanged(isHuman: Boolean) {
         isHumanState = isHuman
-    }
-
-    fun onCurrentTurnChanged(currentTurn: Int) {
-        currentTurnState = currentTurn
     }
 
     lateinit var getAllPlayers: Flow<List<Player>>

@@ -91,7 +91,6 @@ fun AddEditPlayerDetailView(
                             )
                         )
                     } else {
-                        //  AddWish
                         viewModel.addPlayer(
                             Player(
                                 name = viewModel.playerNameState.trim(),
@@ -159,7 +158,7 @@ fun PlayerCheckBox(
 
 @Preview
 @Composable
-fun WishTestFieldPrev() {
+fun PlayerFieldPreview() {
     PlayerTextField(label = "text", value = "text", onValueChanged = {})
 }
 
