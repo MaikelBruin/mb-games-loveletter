@@ -69,7 +69,7 @@ fun NewGameView(
                 backgroundColor = Color.Black,
                 onClick = {
                     Toast.makeText(context, "FAButton Clicked", Toast.LENGTH_LONG).show()
-                    navController.navigate(Screen.AddPlayerScreen.route + "/0L")
+                    navController.navigate(Screen.AddPlayerScreen.route + "/0")
 
                 }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
