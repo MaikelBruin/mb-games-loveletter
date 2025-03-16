@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import mb.games.loveletter.screen.AboutScreen
 import mb.games.loveletter.screen.HelpScreen
 import mb.games.loveletter.screen.HomeScreen
+import mb.games.loveletter.screen.NewGameScreen
 import mb.games.loveletter.screen.Screen
 
 @Composable
@@ -16,7 +17,7 @@ fun NavigationGraph(
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
             HomeScreen(onNavigateToNewGame = {
-                navHostController.navigate(Screen.PlayerListScreen.route)
+                navHostController.navigate(Screen.NewGameScreen.route)
             }, onNavigateToHelp = {
                 navHostController.navigate(Screen.HelpScreen.route)
             }, onNavigateToAbout = {
@@ -32,6 +33,11 @@ fun NavigationGraph(
             HelpScreen(onClick = {
                 navHostController.navigate(Screen.HomeScreen.route)
             })
+        }
+        composable(Screen.NewGameScreen.route) {
+            NewGameScreen(onStartGame = {
+                navHostController.navigate(Screen.HomeScreen.route)
+            }, onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }
     }
 }
