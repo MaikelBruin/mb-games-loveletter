@@ -8,6 +8,18 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         gameSessionDao.insertPlayer(player)
     }
 
-    suspend fun getPlayers(): Flow<List<Player>> = gameSessionDao.getAllPlayers()
+    fun getPlayers(): Flow<List<Player>> = gameSessionDao.getAllPlayers()
+
+    fun getPlayerById(id: Int): Flow<Player> {
+        return gameSessionDao.getPlayerById(id)
+    }
+
+    suspend fun updatePlayer(player: Player) {
+        gameSessionDao.updatePlayer(player)
+    }
+
+    suspend fun deletePlayer(player: Player){
+        gameSessionDao.deletePlayer(player)
+    }
 
 }

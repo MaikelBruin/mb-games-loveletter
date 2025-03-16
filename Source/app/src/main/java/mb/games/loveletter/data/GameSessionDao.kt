@@ -12,6 +12,15 @@ interface GameSessionDao {
     @Query("SELECT * FROM players")
     fun getAllPlayers(): Flow<List<Player>>
 
+    @Query("SELECT * FROM players WHERE id=:id")
+    fun getPlayerById(id: Int): Flow<Player>
+
+    @Update
+    suspend fun updatePlayer(player: Player)
+
+    @Delete
+    suspend fun deletePlayer(player: Player)
+
     @Query("SELECT * FROM players WHERE isHuman == 1")
     suspend fun getAllHumanPlayers(): List<Player>
 

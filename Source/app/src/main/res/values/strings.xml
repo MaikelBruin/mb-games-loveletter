@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LoveLetter</string>
+    <string name="update_player">Update Player</string>
+    <string name="add_player">Add Player</string>
 </resources>
