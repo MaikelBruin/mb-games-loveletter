@@ -18,4 +18,12 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         gameSessionDao.clearGameSessions()
     }
 
+    suspend fun updateGameSession(game: GameSession) {
+        gameSessionDao.updateGameSession(game)
+    }
+
+    suspend fun deleteGameSession(game: GameSession) {
+        gameSessionDao.deleteGameSession(game)
+    }
+
 }

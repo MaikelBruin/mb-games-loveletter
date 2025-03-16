@@ -22,4 +22,10 @@ interface GameSessionDao {
 
     @Query("DELETE FROM game_sessions")
     suspend fun clearGameSessions()
+
+    @Update
+    suspend fun updateGameSession(game: GameSession)
+
+    @Delete
+    suspend fun deleteGameSession(game: GameSession)
 }

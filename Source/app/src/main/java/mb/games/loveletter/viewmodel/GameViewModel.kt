@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
+import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
@@ -30,13 +31,16 @@ class GameViewModel(
     }
 
     lateinit var getAllPlayers: Flow<List<Player>>
+    lateinit var getAllGameSessions: Flow<List<GameSession>>
 
     init {
         viewModelScope.launch {
             getAllPlayers = playerRepository.getPlayers()
+            getAllGameSessions = gameSessionRepository.getGameSessions()
         }
     }
 
+    //players
     fun addPlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
             playerRepository.addPlayer(player = player)
@@ -57,6 +61,30 @@ class GameViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             playerRepository.deletePlayer(player = player)
             getAllPlayers = playerRepository.getPlayers()
+        }
+    }
+
+    //game sessions
+    fun addGameSession(gameSession: GameSession) {
+        viewModelScope.launch(Dispatchers.IO) {
+            gameSessionRepository.addGameSession(game = gameSession)
+        }
+    }
+
+    fun updateGameSession(gameSession: GameSession) {
+        viewModelScope.launch(Dispatchers.IO) {
+            gameSessionRepository.updateGameSession(game = gameSession)
+        }
+    }
+
+    fun getGameSession(id: Int): Flow<GameSession> {
+        return gameSessionRepository.getGameSession(id)
+    }
+
+    fun deleteGameSession(gameSession: GameSession) {
+        viewModelScope.launch(Dispatchers.IO) {
+            gameSessionRepository.deleteGameSession(game = gameSession)
+            getAllGameSessions = gameSessionRepository.getGameSessions()
         }
     }
 }
