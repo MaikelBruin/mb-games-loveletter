@@ -31,16 +31,4 @@ interface PlayerDao {
 
     @Query("SELECT * FROM players WHERE isHuman == 0")
     suspend fun getAllBots(): List<Player>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGameSession(session: GameSession)
-
-    @Query("SELECT * FROM game_sessions WHERE id = :sessionId")
-    fun getGameSession(sessionId: Int): Flow<GameSession>
-
-    @Query("SELECT * FROM game_sessions")
-    fun getAllGameSessions(): Flow<List<GameSession>>
-
-    @Query("DELETE FROM game_sessions")
-    suspend fun clearGameSessions()
 }

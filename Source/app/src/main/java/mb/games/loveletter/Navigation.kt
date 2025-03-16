@@ -18,7 +18,7 @@ import mb.games.loveletter.viewmodel.GameViewModel
 @Composable
 fun NavigationGraph(
     navHostController: NavHostController,
-    gameSessionViewModel: GameViewModel = viewModel()
+    gameViewModel: GameViewModel = viewModel()
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
@@ -43,7 +43,7 @@ fun NavigationGraph(
         composable(Screen.NewGameScreen.route) {
             NewGameScreen(
                 navController = navHostController,
-                viewModel = gameSessionViewModel,
+                viewModel = gameViewModel,
                 onStartGame = {
                     navHostController.navigate(Screen.HomeScreen.route)
                 },
@@ -61,7 +61,7 @@ fun NavigationGraph(
             val id = if (entry.arguments != null) entry.arguments!!.getInt("id") else 0
             AddEditPlayerDetailView(
                 id = id,
-                viewModel = gameSessionViewModel,
+                viewModel = gameViewModel,
                 navController = navHostController
             )
         }

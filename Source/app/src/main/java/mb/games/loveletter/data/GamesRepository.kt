@@ -2,15 +2,15 @@ package mb.games.loveletter.data
 
 import kotlinx.coroutines.flow.Flow
 
-class GamesRepository(private val gameSessionDao: PlayerDao) {
+class GamesRepository(private val gameSessionDao: GameSessionDao) {
 
     suspend fun addGameSession(game: GameSession) {
         gameSessionDao.insertGameSession(game)
     }
 
-    suspend fun getGameSessions(): Flow<List<GameSession>> = gameSessionDao.getAllGameSessions()
+    fun getGameSessions(): Flow<List<GameSession>> = gameSessionDao.getAllGameSessions()
 
-    suspend fun getGameSession(id: Int): Flow<GameSession> {
+    fun getGameSession(id: Int): Flow<GameSession> {
         return gameSessionDao.getGameSession(id)
     }
 
