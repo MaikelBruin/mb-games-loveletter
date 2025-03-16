@@ -2,7 +2,7 @@ package mb.games.loveletter.data
 
 import kotlinx.coroutines.flow.Flow
 
-class GamesRepository(private val gameSessionDao: GameSessionDao) {
+class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
 
     suspend fun addGameSession(game: GameSession) {
         gameSessionDao.insertGameSession(game)

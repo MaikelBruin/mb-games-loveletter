@@ -9,11 +9,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
+import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
 
-class GameViewModel(private val playerRepository: PlayerRepository = Graph.playerRepository) :
-    ViewModel() {
+class GameViewModel(
+    private val playerRepository: PlayerRepository = Graph.playerRepository,
+    private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
+) : ViewModel() {
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
