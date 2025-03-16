@@ -41,21 +41,29 @@ fun NavigationGraph(
             })
         }
         composable(Screen.NewGameScreen.route) {
-            NewGameScreen(navController = navHostController, viewModel = gameSessionViewModel, onStartGame = {
-                navHostController.navigate(Screen.HomeScreen.route)
-            }, onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
+            NewGameScreen(
+                navController = navHostController,
+                viewModel = gameSessionViewModel,
+                onStartGame = {
+                    navHostController.navigate(Screen.HomeScreen.route)
+                },
+                onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }
         composable(Screen.AddPlayerScreen.route + "/{id}",
             arguments = listOf(
-                navArgument("id"){
+                navArgument("id") {
                     type = NavType.IntType
                     defaultValue = 0
                     nullable = false
                 }
             )
-        ){entry->
-            val id = if(entry.arguments != null)  entry.arguments!!.getInt("id") else 0
-            AddEditPlayerDetailView(id = id, viewModel = gameSessionViewModel , navController = navHostController)
+        ) { entry ->
+            val id = if (entry.arguments != null) entry.arguments!!.getInt("id") else 0
+            AddEditPlayerDetailView(
+                id = id,
+                viewModel = gameSessionViewModel,
+                navController = navHostController
+            )
         }
     }
 }

@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -39,13 +38,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import mb.games.loveletter.data.Player
-import mb.games.loveletter.data.homeMenuItems
 import mb.games.loveletter.data.newGameMenuItems
-import mb.games.loveletter.data.startGameMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.ui.theme.Orange
 import mb.games.loveletter.viewmodel.GameSessionViewModel

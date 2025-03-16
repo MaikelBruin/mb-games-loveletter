@@ -18,7 +18,7 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         gameSessionDao.updatePlayer(player)
     }
 
-    suspend fun deletePlayer(player: Player){
+    suspend fun deletePlayer(player: Player) {
         gameSessionDao.deletePlayer(player)
     }
 
