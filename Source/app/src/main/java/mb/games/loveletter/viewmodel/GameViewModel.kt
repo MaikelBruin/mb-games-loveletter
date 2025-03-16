@@ -9,10 +9,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
-import mb.games.loveletter.data.GameSessionRepository
+import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
 
-class GameSessionViewModel(private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository) :
+class GameViewModel(private val playerRepository: PlayerRepository = Graph.playerRepository) :
     ViewModel() {
 
     var playerNameState by mutableStateOf("")
@@ -30,30 +30,30 @@ class GameSessionViewModel(private val gameSessionRepository: GameSessionReposit
 
     init {
         viewModelScope.launch {
-            getAllPlayers = gameSessionRepository.getPlayers()
+            getAllPlayers = playerRepository.getPlayers()
         }
     }
 
     fun addPlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.addPlayer(player = player)
+            playerRepository.addPlayer(player = player)
         }
     }
 
     fun updatePlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.updatePlayer(player = player)
+            playerRepository.updatePlayer(player = player)
         }
     }
 
     fun getAPlayerById(id: Int): Flow<Player> {
-        return gameSessionRepository.getPlayerById(id)
+        return playerRepository.getPlayerById(id)
     }
 
     fun deletePlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.deletePlayer(player = player)
-            getAllPlayers = gameSessionRepository.getPlayers()
+            playerRepository.deletePlayer(player = player)
+            getAllPlayers = playerRepository.getPlayers()
         }
     }
 }

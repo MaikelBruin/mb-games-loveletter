@@ -7,5 +7,5 @@ import androidx.room.TypeConverters
 @Database(entities = [Player::class, GameSession::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class GameDatabase : RoomDatabase() {
-    abstract fun gameDao(): GameSessionDao
+    abstract fun playerDao(): PlayerDao
 }

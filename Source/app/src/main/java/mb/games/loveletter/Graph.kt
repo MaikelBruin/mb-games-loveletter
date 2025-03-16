@@ -3,13 +3,13 @@ package mb.games.loveletter
 import android.content.Context
 import androidx.room.Room
 import mb.games.loveletter.data.GameDatabase
-import mb.games.loveletter.data.GameSessionRepository
+import mb.games.loveletter.data.PlayerRepository
 
 object Graph {
     lateinit var database: GameDatabase
 
-    val gameSessionRepository by lazy {
-        GameSessionRepository(gameSessionDao = database.gameDao())
+    val playerRepository by lazy {
+        PlayerRepository(playerDao = database.playerDao())
     }
 
     fun provide(context: Context) {

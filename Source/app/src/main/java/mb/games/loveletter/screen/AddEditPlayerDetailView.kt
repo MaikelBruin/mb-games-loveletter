@@ -34,11 +34,11 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import mb.games.loveletter.R
 import mb.games.loveletter.data.Player
-import mb.games.loveletter.viewmodel.GameSessionViewModel
+import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun AddEditPlayerDetailView(
-    id: Int, viewModel: GameSessionViewModel, navController: NavController
+    id: Int, viewModel: GameViewModel, navController: NavController
 ) {
 
     val snackMessage = remember {

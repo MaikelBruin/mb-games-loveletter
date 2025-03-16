@@ -44,12 +44,12 @@ import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.newGameMenuItems
 import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.ui.theme.Orange
-import mb.games.loveletter.viewmodel.GameSessionViewModel
+import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun NewGameScreen(
     navController: NavController,
-    viewModel: GameSessionViewModel,
+    viewModel: GameViewModel,
     onStartGame: () -> Unit,
     onBackToHome: () -> Unit
 ) {
@@ -60,7 +60,7 @@ fun NewGameScreen(
 @Composable
 fun NewGameView(
     navController: NavController,
-    viewModel: GameSessionViewModel,
+    viewModel: GameViewModel,
     onStartGame: () -> Unit,
     onBackToHome: () -> Unit
 ) {

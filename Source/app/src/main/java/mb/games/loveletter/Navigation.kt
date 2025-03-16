@@ -13,12 +13,12 @@ import mb.games.loveletter.screen.HelpScreen
 import mb.games.loveletter.screen.HomeScreen
 import mb.games.loveletter.screen.NewGameScreen
 import mb.games.loveletter.screen.Screen
-import mb.games.loveletter.viewmodel.GameSessionViewModel
+import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun NavigationGraph(
     navHostController: NavHostController,
-    gameSessionViewModel: GameSessionViewModel = viewModel()
+    gameSessionViewModel: GameViewModel = viewModel()
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
