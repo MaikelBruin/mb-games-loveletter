@@ -39,7 +39,7 @@ fun NavigationGraph(
             })
         }
         composable(Screen.NewGameScreen.route) {
-            NewGameScreen(onStartGame = {
+            NewGameScreen(navController = navHostController, viewModel = viewModel(), onStartGame = {
                 navHostController.navigate(Screen.HomeScreen.route)
             }, onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }

@@ -43,9 +43,12 @@ import mb.games.loveletter.viewmodel.GameSessionViewModel
 
 @Composable
 fun NewGameScreen(
-    onStartGame: () -> Unit, onBackToHome: () -> Unit
+    navController: NavController,
+    viewModel: GameSessionViewModel,
+    onStartGame: () -> Unit,
+    onBackToHome: () -> Unit
 ) {
-    NewGameScreen(onStartGame, onBackToHome)
+    NewGameView(navController, viewModel, onStartGame, onBackToHome)
 }
 
 @OptIn(ExperimentalMaterialApi::class)
