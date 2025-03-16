@@ -8,5 +8,4 @@ import androidx.room.TypeConverters
 @TypeConverters(Converters::class)
 abstract class GameDatabase : RoomDatabase() {
     abstract fun gameDao(): GameSessionDao
-
 }

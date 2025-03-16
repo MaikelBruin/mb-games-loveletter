@@ -27,8 +27,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,9 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.data.homeMenuItems
+import mb.games.loveletter.data.newGameMenuItems
+import mb.games.loveletter.data.startGameMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.ui.theme.Orange
 import mb.games.loveletter.viewmodel.GameSessionViewModel
@@ -84,62 +88,87 @@ fun NewGameView(
 
     ) {
         val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+        Row() {
+            Column(
+                modifier = Modifier.fillMaxWidth(fraction = 0.5F),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Players")
-            }
-            Row {
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(it)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    items(players.value, key = { player -> player.id }) { player ->
-                        val dismissState = rememberDismissState(confirmStateChange = {
-                            if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
-                                viewModel.deletePlayer(player)
-                            }
-                            true
-                        })
+                    Text(text = "Players")
+                }
+                Row {
 
-                        SwipeToDismiss(state = dismissState,
-                            background = {
-                                val color by animateColorAsState(
-                                    if (dismissState.dismissDirection == DismissDirection.EndToStart) Color.Red else Color.Transparent,
-                                    label = ""
-                                )
-                                val alignment = Alignment.CenterEnd
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(color)
-                                        .padding(horizontal = 20.dp), contentAlignment = alignment
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
-                                        tint = Color.White
-                                    )
+                    LazyColumn(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(it)
+                    ) {
+                        items(players.value, key = { player -> player.id }) { player ->
+                            val dismissState = rememberDismissState(confirmStateChange = {
+                                if (it == DismissValue.DismissedToEnd || it == DismissValue.DismissedToStart) {
+                                    viewModel.deletePlayer(player)
                                 }
-
-                            },
-                            directions = setOf(DismissDirection.EndToStart),
-                            dismissThresholds = { FractionalThreshold(1f) },
-                            dismissContent = {
-                                PlayerItem(player = player) {
-                                    val id = player.id
-                                    navController.navigate(Screen.AddPlayerScreen.route + "/$id")
-                                }
+                                true
                             })
+
+                            SwipeToDismiss(state = dismissState,
+                                background = {
+                                    val color by animateColorAsState(
+                                        if (dismissState.dismissDirection == DismissDirection.EndToStart) Color.Red else Color.Transparent,
+                                        label = ""
+                                    )
+                                    val alignment = Alignment.CenterEnd
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(color)
+                                            .padding(horizontal = 20.dp),
+                                        contentAlignment = alignment
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Delete Icon",
+                                            tint = Color.White
+                                        )
+                                    }
+
+                                },
+                                directions = setOf(DismissDirection.EndToStart),
+                                dismissThresholds = { FractionalThreshold(1f) },
+                                dismissContent = {
+                                    PlayerItem(player = player) {
+                                        val id = player.id
+                                        navController.navigate(Screen.AddPlayerScreen.route + "/$id")
+                                    }
+                                })
+                        }
                     }
+                }
+            }
+            LazyColumn(
+                horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()
+            ) {
+                items(newGameMenuItems) { menuItem ->
+                    MenuItemView(menuItem = menuItem, onClick = {
+                        when (menuItem.name) {
+                            "Start game" -> {
+                                onStartGame()
+                            }
+
+                            "Home" -> {
+                                onBackToHome()
+                            }
+
+                            else -> {
+                                onBackToHome()
+                            }
+                        }
+                    })
                 }
             }
         }
