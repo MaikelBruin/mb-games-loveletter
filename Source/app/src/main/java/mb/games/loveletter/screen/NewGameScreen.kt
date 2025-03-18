@@ -156,13 +156,7 @@ fun NewGameView(
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
                             "Start game" -> {
-                                viewModel.addGameSession(
-                                    GameSession(
-                                        currentTurn = 0,
-                                        playerIds = players.value.map { player -> player.id },
-                                        deck = Deck().createStartingDeck().map { cards -> cards.id }
-                                    )
-                                )
+                                viewModel.startNewGame(players.value.map { player -> player.id })
                                 onStartGame()
                             }
 

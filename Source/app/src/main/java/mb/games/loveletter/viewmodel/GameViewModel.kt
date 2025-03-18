@@ -98,27 +98,29 @@ class GameViewModel(
         }
     }
 
-    suspend fun startNewGame(playerIds: List<Long>): Long {
-        val deck = Deck().createStartingDeck() // Generate shuffled deck
-        val deckIds = deck.map { it.id } // Store only card IDs
+    fun startNewGame(playerIds: List<Long>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val deck = Deck().createStartingDeck()
+            val deckIds = deck.map { it.id }
 
-        val gameSession = GameSession(
-            playerIds = playerIds,
-            deck = deckIds
-        )
-        val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
-
-        // Create empty player states
-        playerIds.forEach { playerId ->
-            val playerState = PlayerState(
-                gameSessionId = gameId,
-                playerId = playerId,
-                hand = emptyList(),
-                discardPile = emptyList()
+            val gameSession = GameSession(
+                playerIds = playerIds,
+                deck = deckIds
             )
-            playerStateRepository.insertPlayerState(playerState) // Save to DB
-        }
+            val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
+            _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
 
-        return gameId
+
+            // Create empty player states
+            playerIds.forEach { playerId ->
+                val playerState = PlayerState(
+                    gameSessionId = gameId,
+                    playerId = playerId,
+                    hand = emptyList(),
+                    discardPile = emptyList()
+                )
+                playerStateRepository.insertPlayerState(playerState) // Save to DB
+            }
+        }
     }
 }
