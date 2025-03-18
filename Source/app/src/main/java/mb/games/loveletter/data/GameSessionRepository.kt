@@ -10,7 +10,7 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
 
     fun getGameSessions(): Flow<List<GameSession>> = gameSessionDao.getAllGameSessions()
 
-    fun getGameSession(id: Int): Flow<GameSession> {
+    suspend fun getGameSession(id: Long): GameSession {
         return gameSessionDao.getGameSession(id)
     }
 

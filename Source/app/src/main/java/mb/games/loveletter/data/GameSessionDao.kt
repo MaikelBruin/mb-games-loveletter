@@ -15,7 +15,7 @@ interface GameSessionDao {
     suspend fun insertGameSession(session: GameSession): Long
 
     @Query("SELECT * FROM game_sessions WHERE id = :sessionId")
-    fun getGameSession(sessionId: Int): Flow<GameSession>
+    suspend fun getGameSession(sessionId: Long): GameSession
 
     @Query("SELECT * FROM game_sessions")
     fun getAllGameSessions(): Flow<List<GameSession>>

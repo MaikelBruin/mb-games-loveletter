@@ -1,5 +1,6 @@
 package mb.games.loveletter.viewmodel
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,6 +19,9 @@ class GameViewModel(
     private val playerRepository: PlayerRepository = Graph.playerRepository,
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
+
+    private val _currentGameSession = mutableStateOf<GameSession?>(null)
+    val currentGameSession: State<GameSession?> = _currentGameSession
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -67,7 +71,8 @@ class GameViewModel(
     //game sessions
     fun addGameSession(gameSession: GameSession) {
         viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.addGameSession(game = gameSession)
+            val gameSessionId = gameSessionRepository.addGameSession(game = gameSession)
+            _currentGameSession.value = gameSessionRepository.getGameSession(gameSessionId)
         }
     }
 
@@ -77,7 +82,7 @@ class GameViewModel(
         }
     }
 
-    fun getGameSession(id: Int): Flow<GameSession> {
+    suspend fun getGameSession(id: Long): GameSession {
         return gameSessionRepository.getGameSession(id)
     }
 
