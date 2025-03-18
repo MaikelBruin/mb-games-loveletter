@@ -45,7 +45,7 @@ fun NavigationGraph(
                 navController = navHostController,
                 viewModel = gameViewModel,
                 onStartGame = {
-                    navHostController.navigate(Screen.HomeScreen.route)
+                    navHostController.navigate(Screen.GameScreen.route)
                 },
                 onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }

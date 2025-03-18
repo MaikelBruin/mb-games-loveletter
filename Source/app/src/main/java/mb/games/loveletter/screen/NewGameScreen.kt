@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.flow.map
+import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.newGameMenuItems
 import mb.games.loveletter.ui.theme.Bordeaux
@@ -153,6 +155,13 @@ fun NewGameView(
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
                             "Start game" -> {
+                                viewModel.addGameSession(
+                                    GameSession(
+                                        currentTurn = 0,
+                                        playerIds = players.value.map { player -> player.id },
+                                        deckState = "full"
+                                    )
+                                )
                                 onStartGame()
                             }
 

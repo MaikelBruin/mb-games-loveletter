@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 
 class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
 
-    suspend fun addGameSession(game: GameSession) {
-        gameSessionDao.insertGameSession(game)
+    suspend fun addGameSession(game: GameSession): Long {
+        return gameSessionDao.insertGameSession(game)
     }
 
     fun getGameSessions(): Flow<List<GameSession>> = gameSessionDao.getAllGameSessions()

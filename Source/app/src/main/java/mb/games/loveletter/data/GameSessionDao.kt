@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface GameSessionDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGameSession(session: GameSession)
+    suspend fun insertGameSession(session: GameSession): Long
 
     @Query("SELECT * FROM game_sessions WHERE id = :sessionId")
     fun getGameSession(sessionId: Int): Flow<GameSession>
