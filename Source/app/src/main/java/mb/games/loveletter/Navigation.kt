@@ -22,13 +22,17 @@ fun NavigationGraph(
 ) {
     NavHost(navController = navHostController, startDestination = Screen.HomeScreen.route) {
         composable(Screen.HomeScreen.route) {
-            HomeScreen(onNavigateToNewGame = {
-                navHostController.navigate(Screen.NewGameScreen.route)
-            }, onNavigateToHelp = {
-                navHostController.navigate(Screen.HelpScreen.route)
-            }, onNavigateToAbout = {
-                navHostController.navigate(Screen.AboutScreen.route)
-            })
+            HomeScreen(
+                onNavigateToContinueGame = {
+                    navHostController.navigate(Screen.GameScreen.route)
+                },
+                onNavigateToNewGame = {
+                    navHostController.navigate(Screen.NewGameScreen.route)
+                }, onNavigateToHelp = {
+                    navHostController.navigate(Screen.HelpScreen.route)
+                }, onNavigateToAbout = {
+                    navHostController.navigate(Screen.AboutScreen.route)
+                })
         }
         composable(Screen.AboutScreen.route) {
             AboutScreen(onClick = {

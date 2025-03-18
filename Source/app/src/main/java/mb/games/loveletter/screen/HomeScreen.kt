@@ -19,14 +19,14 @@ import mb.games.loveletter.data.homeMenuItems
 
 @Composable
 fun HomeScreen(
-    onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
+    onNavigateToContinueGame: () -> Unit, onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
 ) {
-    MenuView(onNavigateToNewGame, onNavigateToHelp, onNavigateToAbout)
+    MenuView(onNavigateToContinueGame, onNavigateToNewGame, onNavigateToHelp, onNavigateToAbout)
 }
 
 @Composable
 fun MenuView(
-    onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
+    onNavigateToContinueGame: () -> Unit, onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -48,6 +48,10 @@ fun MenuView(
                 items(homeMenuItems) { menuItem ->
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
+                            "Continue game" -> {
+                                onNavigateToContinueGame()
+                            }
+
                             "New game" -> {
                                 onNavigateToNewGame()
                             }
@@ -73,5 +77,5 @@ fun MenuView(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen({}, {}, {})
+    HomeScreen({}, {}, {}, {})
 }
