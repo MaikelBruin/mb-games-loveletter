@@ -26,4 +26,8 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         gameSessionDao.deleteGameSession(game)
     }
 
+    suspend fun insertPlayerState(playerState: PlayerState) {
+
+    }
+
 }

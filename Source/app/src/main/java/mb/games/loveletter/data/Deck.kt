@@ -1,24 +1,36 @@
 package mb.games.loveletter.data
 
 class Deck() {
-    private var deck: MutableList<Card> = mutableListOf()
+    private var deck: MutableList<Cards> = mutableListOf()
 
-    fun getDefaultDeck(): MutableList<Card> {
-        repeat(Cards.Spy.card.amountInDeck) { deck.add(Cards.Spy.card.copy()) }
-        repeat(Cards.Guard.card.amountInDeck) { deck.add(Cards.Guard.card.copy()) }
-        repeat(Cards.Priest.card.amountInDeck) { deck.add(Cards.Priest.card.copy()) }
-        repeat(Cards.Baron.card.amountInDeck) { deck.add(Cards.Baron.card.copy()) }
-        repeat(Cards.Handmaid.card.amountInDeck) { deck.add(Cards.Handmaid.card.copy()) }
-        repeat(Cards.Prince.card.amountInDeck) { deck.add(Cards.Prince.card.copy()) }
-        repeat(Cards.Chancellor.card.amountInDeck) { deck.add(Cards.Chancellor.card.copy()) }
-        repeat(Cards.King.card.amountInDeck) { deck.add(Cards.King.card.copy()) }
-        repeat(Cards.Countess.card.amountInDeck) { deck.add(Cards.Countess.card.copy()) }
-        repeat(Cards.Princess.card.amountInDeck) { deck.add(Cards.Princess.card.copy()) }
+    fun createStartingDeck(): MutableList<Cards> {
+        deck.add(Cards.Spy1)
+        deck.add(Cards.Spy2)
+        deck.add(Cards.Guard1)
+        deck.add(Cards.Guard2)
+        deck.add(Cards.Guard3)
+        deck.add(Cards.Guard4)
+        deck.add(Cards.Guard5)
+        deck.add(Cards.Guard6)
+        deck.add(Cards.Priest1)
+        deck.add(Cards.Priest2)
+        deck.add(Cards.Baron1)
+        deck.add(Cards.Baron2)
+        deck.add(Cards.Handmaid1)
+        deck.add(Cards.Handmaid2)
+        deck.add(Cards.Prince1)
+        deck.add(Cards.Prince2)
+        deck.add(Cards.Chancellor1)
+        deck.add(Cards.Chancellor2)
+        deck.add(Cards.King)
+        deck.add(Cards.Countess)
+        deck.add(Cards.Princess)
         deck.shuffle()
         return deck
     }
 
     fun drawCard(): Card {
-        return deck.removeFirst()
+        return deck.removeFirst().cardType.card
     }
+
 }

@@ -62,7 +62,7 @@ fun NavigationGraph(
             defaultValue = 0
             nullable = false
         })) { entry ->
-            val id = if (entry.arguments != null) entry.arguments!!.getInt("id") else 0
+            val id = if (entry.arguments != null) entry.arguments!!.getLong("id") else 0L
             AddEditPlayerDetailView(
                 id = id, viewModel = gameViewModel, navController = navHostController
             )

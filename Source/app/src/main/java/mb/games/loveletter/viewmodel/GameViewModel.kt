@@ -10,13 +10,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
+import mb.games.loveletter.data.Cards
+import mb.games.loveletter.data.Deck
 import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.data.PlayerState
+import mb.games.loveletter.data.PlayerStateRepository
 
 class GameViewModel(
     private val playerRepository: PlayerRepository = Graph.playerRepository,
+    private val playerStateRepository: PlayerStateRepository = Graph.playerStateRepository,
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
@@ -57,7 +62,7 @@ class GameViewModel(
         }
     }
 
-    fun getAPlayerById(id: Int): Flow<Player> {
+    fun getAPlayerById(id: Long): Flow<Player> {
         return playerRepository.getPlayerById(id)
     }
 
@@ -91,5 +96,29 @@ class GameViewModel(
             gameSessionRepository.deleteGameSession(game = gameSession)
             getAllGameSessions = gameSessionRepository.getGameSessions()
         }
+    }
+
+    suspend fun startNewGame(playerIds: List<Long>): Long {
+        val deck = Deck().createStartingDeck() // Generate shuffled deck
+        val deckIds = deck.map { it.id } // Store only card IDs
+
+        val gameSession = GameSession(
+            playerIds = playerIds,
+            deck = deckIds
+        )
+        val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
+
+        // Create empty player states
+        playerIds.forEach { playerId ->
+            val playerState = PlayerState(
+                gameSessionId = gameId,
+                playerId = playerId,
+                hand = emptyList(),
+                discardPile = emptyList()
+            )
+            playerStateRepository.insertPlayerState(playerState) // Save to DB
+        }
+
+        return gameId
     }
 }

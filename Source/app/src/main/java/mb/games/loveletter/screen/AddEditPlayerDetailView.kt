@@ -38,7 +38,7 @@ import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun AddEditPlayerDetailView(
-    id: Int, viewModel: GameViewModel, navController: NavController
+    id: Long, viewModel: GameViewModel, navController: NavController
 ) {
 
     val snackMessage = remember {
@@ -46,7 +46,7 @@ fun AddEditPlayerDetailView(
     }
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
-    if (id != 0) {
+    if (id != 0L) {
         val player = viewModel.getAPlayerById(id).collectAsState(initial = Player(0, "", 0, false))
         viewModel.playerNameState = player.value.name
         viewModel.isHumanState = player.value.isHuman
@@ -58,7 +58,7 @@ fun AddEditPlayerDetailView(
     Scaffold(
         topBar = {
             AppBarView(
-                title = if (id != 0) stringResource(id = R.string.update_player)
+                title = if (id != 0L) stringResource(id = R.string.update_player)
                 else stringResource(id = R.string.add_player)
             ) { navController.navigateUp() }
         }, scaffoldState = scaffoldState
@@ -82,7 +82,7 @@ fun AddEditPlayerDetailView(
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = {
                 if (viewModel.playerNameState.isNotEmpty()) {
-                    if (id != 0) {
+                    if (id != 0L) {
                         viewModel.updatePlayer(
                             Player(
                                 id = id,
@@ -108,7 +108,7 @@ fun AddEditPlayerDetailView(
 
             }) {
                 Text(
-                    text = if (id != 0) stringResource(id = R.string.update_player)
+                    text = if (id != 0L) stringResource(id = R.string.update_player)
                     else stringResource(
                         id = R.string.add_player
                     ), style = TextStyle(

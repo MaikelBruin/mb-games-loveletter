@@ -10,7 +10,7 @@ class PlayerRepository(private val playerDao: PlayerDao) {
 
     fun getPlayers(): Flow<List<Player>> = playerDao.getAllPlayers()
 
-    fun getPlayerById(id: Int): Flow<Player> {
+    fun getPlayerById(id: Long): Flow<Player> {
         return playerDao.getPlayerById(id)
     }
 

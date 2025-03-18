@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.map
+import mb.games.loveletter.data.Deck
 import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.newGameMenuItems
@@ -159,7 +160,7 @@ fun NewGameView(
                                     GameSession(
                                         currentTurn = 0,
                                         playerIds = players.value.map { player -> player.id },
-                                        deckState = "full"
+                                        deck = Deck().createStartingDeck().map { cards -> cards.id }
                                     )
                                 )
                                 onStartGame()

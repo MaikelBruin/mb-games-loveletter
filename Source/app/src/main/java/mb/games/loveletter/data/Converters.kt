@@ -17,4 +17,14 @@ class Converters {
     fun toListInt(value: String): List<Int> {
         return gson.fromJson(value, object : TypeToken<List<Int>>() {}.type)
     }
+
+    @TypeConverter
+    fun fromListLong(value: List<Long>): String {
+        return gson.toJson(value)
+    }
+
+    @TypeConverter
+    fun toListLong(value: String): List<Long> {
+        return gson.fromJson(value, object : TypeToken<List<Long>>() {}.type)
+    }
 }
