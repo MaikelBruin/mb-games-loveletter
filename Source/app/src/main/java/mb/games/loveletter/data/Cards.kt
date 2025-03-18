@@ -1,7 +1,7 @@
 package mb.games.loveletter.data
 
 sealed class Cards(val card: Card) {
-    object Spy : Cards(
+    data object Spy : Cards(
         Card(
             "Spy",
             0,
@@ -11,7 +11,7 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Guard : Cards(
+    data object Guard : Cards(
         Card(
             "Guard",
             1,
@@ -21,10 +21,10 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Priest :
+    data object Priest :
         Cards(Card("Priest", 2, 2, "Look at a hand.", "Choose and look at another player's hand."))
 
-    object Baron : Cards(
+    data object Baron : Cards(
         Card(
             "Baron",
             3,
@@ -34,7 +34,7 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Handmaid : Cards(
+    data object Handmaid : Cards(
         Card(
             "Handmaid",
             4,
@@ -44,7 +44,7 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Prince : Cards(
+    data object Prince : Cards(
         Card(
             "Prince",
             5,
@@ -54,7 +54,7 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Chancellor : Cards(
+    data object Chancellor : Cards(
         Card(
             "Chancellor",
             6,
@@ -64,10 +64,10 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object King :
+    data object King :
         Cards(Card("King", 7, 1, "Trade hands.", "Choose and trade hands with another player."))
 
-    object Countess : Cards(
+    data object Countess : Cards(
         Card(
             "Countess",
             8,
@@ -77,7 +77,7 @@ sealed class Cards(val card: Card) {
         )
     )
 
-    object Princess : Cards(
+    data object Princess : Cards(
         Card(
             "Princess",
             9,
