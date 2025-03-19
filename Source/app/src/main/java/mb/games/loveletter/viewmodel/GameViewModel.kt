@@ -101,8 +101,8 @@ class GameViewModel(
 
     fun startNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
-            val deck = Deck().createStartingDeck()
-            val deckIds = deck.map { it.id }
+            val deck = Deck.createNewDeck()
+            val deckIds = deck.getCards().map { it.id }
 
             val gameSession = GameSession(
                 playerIds = playerIds,
