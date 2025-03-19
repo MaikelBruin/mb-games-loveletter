@@ -9,6 +9,7 @@ data class GameSession(
     var currentTurn: Int = 0,
     var currentRound: Int = 0,
     val playerIds: List<Long>,
+    val turnOrder: List<Long>,
     val deck: MutableList<Int>,
     val tokensToWin: Int,
     var isActive: Boolean = false

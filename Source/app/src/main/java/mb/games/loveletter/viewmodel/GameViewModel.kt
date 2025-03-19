@@ -2,6 +2,7 @@ package mb.games.loveletter.viewmodel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -27,6 +28,9 @@ class GameViewModel(
     private val playerStateRepository: PlayerStateRepository = Graph.playerStateRepository,
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
+
+    private val _currentTurn = mutableStateOf(null)
+    val currentTurn: State<Int?> = _currentTurn
 
     private val _currentGameSession = mutableStateOf<GameSession?>(null)
     val currentGameSession: State<GameSession?> = _currentGameSession
@@ -109,10 +113,11 @@ class GameViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val deck = Deck.createNewDeck()
             _deck.value = deck
-            val deckIds = deck.getCards().map { it.id } //TODO: use or not use the database to store deck information?
+            val deckIds = deck.getCards().map { it.id } //TODO: remove deck state from db?
 
             val gameSession = GameSession(
                 playerIds = playerIds,
+                turnOrder = playerIds.shuffled(),
                 deck = deckIds.toMutableList(),
                 tokensToWin = getNumberOfTokensToWin(playerIds.size),
                 isActive = true
