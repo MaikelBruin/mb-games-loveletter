@@ -15,18 +15,34 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
+import mb.games.loveletter.data.continueGameMenuItem
 import mb.games.loveletter.data.homeMenuItems
+import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun HomeScreen(
-    onNavigateToContinueGame: () -> Unit, onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
+    viewModel: GameViewModel,
+    onNavigateToContinueGame: () -> Unit,
+    onNavigateToNewGame: () -> Unit,
+    onNavigateToHelp: () -> Unit,
+    onNavigateToAbout: () -> Unit
 ) {
-    MenuView(onNavigateToContinueGame, onNavigateToNewGame, onNavigateToHelp, onNavigateToAbout)
+    HomeView(
+        viewModel,
+        onNavigateToContinueGame,
+        onNavigateToNewGame,
+        onNavigateToHelp,
+        onNavigateToAbout
+    )
 }
 
 @Composable
-fun MenuView(
-    onNavigateToContinueGame: () -> Unit, onNavigateToNewGame: () -> Unit, onNavigateToHelp: () -> Unit, onNavigateToAbout: () -> Unit
+fun HomeView(
+    viewModel: GameViewModel,
+    onNavigateToContinueGame: () -> Unit,
+    onNavigateToNewGame: () -> Unit,
+    onNavigateToHelp: () -> Unit,
+    onNavigateToAbout: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -45,6 +61,9 @@ fun MenuView(
 
         Row {
             LazyColumn {
+                val menuItems = homeMenuItems
+                val hasCurrentGame = viewModel.currentGameSession.value != null
+                if (hasCurrentGame) menuItems.add(continueGameMenuItem)
                 items(homeMenuItems) { menuItem ->
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
@@ -74,8 +93,3 @@ fun MenuView(
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen({}, {}, {}, {})
-}

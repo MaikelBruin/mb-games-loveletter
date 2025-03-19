@@ -11,8 +11,7 @@ val newGameMenuItem = MenuItem(R.drawable.baseline_new_label_24, "New game")
 val startGameMenuItem = MenuItem(R.drawable.baseline_videogame_asset_24, "Start game")
 val helpMenuItem = MenuItem(R.drawable.baseline_help_24, "Help")
 val aboutMenuItem = MenuItem(R.drawable.baseline_info_24, "About")
-val homeMenuItems = listOf(
-    continueGameMenuItem,
+val homeMenuItems = mutableListOf(
     newGameMenuItem,
     helpMenuItem,
     aboutMenuItem
