@@ -1,10 +1,10 @@
 package mb.games.loveletter.screen
 
 sealed class Screen(val route: String) {
-    object HomeScreen : Screen("home")
-    object NewGameScreen : Screen("new_game")
-    object GameScreen : Screen("game")
-    object AddPlayerScreen : Screen("add_player")
-    object HelpScreen : Screen("help")
-    object AboutScreen : Screen("about")
+    data object HomeScreen : Screen("home")
+    data object NewGameScreen : Screen("new_game")
+    data object GameScreen : Screen("game")
+    data object AddPlayerScreen : Screen("add_player")
+    data object HelpScreen : Screen("help")
+    data object AboutScreen : Screen("about")
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
@@ -15,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import mb.games.loveletter.data.Cards
 import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
@@ -32,6 +32,8 @@ fun GameView(
     val scaffoldState = rememberScaffoldState()
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
     val currentGameSession = viewModel.currentGameSession.value
+    val humanPlayer = viewModel.humanPlayer.collectAsState()
+    val playerState = viewModel.playerState.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxSize()
@@ -58,7 +60,8 @@ fun GameView(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Start
             ) {
-                Text(text = "my own card(s)")
+                val cardsInHand = Cards.fromIds(playerState.value!!.hand)
+                Text(text = "my own card(s): ${cardsInHand.map { cards -> cards.cardType.name }}")
             }
         }
         //right

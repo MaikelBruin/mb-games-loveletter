@@ -2,7 +2,6 @@ package mb.games.loveletter.viewmodel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
-import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Deck
 import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
@@ -29,14 +27,20 @@ class GameViewModel(
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
-    private val _currentTurn = mutableStateOf(null)
-    val currentTurn: State<Int?> = _currentTurn
+    private val _currentTurn = mutableStateOf<Long?>(null)
+    val currentTurn: State<Long?> = _currentTurn
 
     private val _currentGameSession = mutableStateOf<GameSession?>(null)
     val currentGameSession: State<GameSession?> = _currentGameSession
 
     private var _deck = MutableStateFlow<Deck?>(null)
     val deck: StateFlow<Deck?> = _deck.asStateFlow()
+
+    private val _humanPlayer = MutableStateFlow<Player?>(null)
+    val humanPlayer: StateFlow<Player?> = _humanPlayer.asStateFlow()
+
+    private val _playerState = MutableStateFlow<PlayerState?>(null)
+    val playerState: StateFlow<PlayerState?> = _playerState.asStateFlow()
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -57,6 +61,7 @@ class GameViewModel(
             getAllPlayers = playerRepository.getPlayers()
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
+            getHumanPlayerForActiveGame()
         }
     }
 
@@ -75,6 +80,18 @@ class GameViewModel(
 
     fun getAPlayerById(id: Long): Flow<Player> {
         return playerRepository.getPlayerById(id)
+    }
+
+    private fun getHumanPlayerForActiveGame() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val gameSessionId = _currentGameSession.value!!.id
+            val player = playerStateRepository.getHumanPlayer(gameSessionId)
+            _humanPlayer.value = player
+            player?.let {
+                // Once the first human player is found, fetch their player state
+                loadPlayerState(it.id)
+            }
+        }
     }
 
     fun deletePlayer(player: Player) {
@@ -115,16 +132,19 @@ class GameViewModel(
             _deck.value = deck
             val deckIds = deck.getCards().map { it.id } //TODO: remove deck state from db?
 
+            val turnOrder = playerIds.shuffled()
             val gameSession = GameSession(
                 playerIds = playerIds,
-                turnOrder = playerIds.shuffled(),
+                turnOrder = turnOrder,
                 deck = deckIds.toMutableList(),
                 tokensToWin = getNumberOfTokensToWin(playerIds.size),
                 isActive = true
             )
-            val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
+
+            val gameId = gameSessionRepository.addGameSession(gameSession)
             _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
 
+            _currentTurn.value = turnOrder.first()
 
             // Create empty player states
             playerIds.forEach { playerId ->
@@ -134,15 +154,21 @@ class GameViewModel(
                     hand = emptyList<Int>().toMutableList(),
                     discardPile = emptyList<Int>().toMutableList()
                 )
-                playerStateRepository.insertPlayerState(playerState) // Save to DB
+                playerStateRepository.insertPlayerState(playerState)
             }
 
             val hands = deck.deal(playerIds)
 
-            // Update the database with dealt hands
             for ((playerId, card) in hands) {
                 playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
+        }
+    }
+
+    //player state
+    private fun loadPlayerState(playerId: Long) {
+        viewModelScope.launch {
+            _playerState.value = playerStateRepository.getPlayerState(playerId)
         }
     }
 
