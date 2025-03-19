@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class Player(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val wins: Int = 0,
+    var wins: Int = 0,
+    var plays: Int = 0,
     val isHuman: Boolean = false
 )

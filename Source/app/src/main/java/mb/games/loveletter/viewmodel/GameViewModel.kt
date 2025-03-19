@@ -105,7 +105,8 @@ class GameViewModel(
 
             val gameSession = GameSession(
                 playerIds = playerIds,
-                deck = deckIds
+                deck = deckIds.toMutableList(),
+                tokensToWin = getNumberOfTokensToWin(playerIds.size)
             )
             val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
             _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
@@ -116,11 +117,21 @@ class GameViewModel(
                 val playerState = PlayerState(
                     gameSessionId = gameId,
                     playerId = playerId,
-                    hand = emptyList(),
-                    discardPile = emptyList()
+                    hand = emptyList<Int>().toMutableList(),
+                    discardPile = emptyList<Int>().toMutableList()
                 )
                 playerStateRepository.insertPlayerState(playerState) // Save to DB
             }
+        }
+    }
+
+    private fun getNumberOfTokensToWin(playerCount: Int): Int {
+        return when (playerCount) {
+            2 -> 6
+            3 -> 5
+            4 -> 4
+            5 -> 3
+            else -> 6
         }
     }
 }

@@ -47,7 +47,7 @@ fun AddEditPlayerDetailView(
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     if (id != 0L) {
-        val player = viewModel.getAPlayerById(id).collectAsState(initial = Player(0, "", 0, false))
+        val player = viewModel.getAPlayerById(id).collectAsState(initial = Player(0, ""))
         viewModel.playerNameState = player.value.name
         viewModel.isHumanState = player.value.isHuman
     } else {

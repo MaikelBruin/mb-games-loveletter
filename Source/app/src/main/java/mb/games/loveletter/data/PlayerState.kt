@@ -18,6 +18,8 @@ data class PlayerState(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val gameSessionId: Long,
     val playerId: Long,
-    val hand: List<Int> = emptyList(),
-    val discardPile: List<Int> = emptyList()
+    val hand: MutableList<Int> = emptyList<Int>().toMutableList(),
+    val discardPile: MutableList<Int> = emptyList<Int>().toMutableList(),
+    var isAlive: Boolean = true,
+    var favorTokens: Long = 0
 )

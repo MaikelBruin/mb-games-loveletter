@@ -24,8 +24,10 @@ object Graph {
 
     fun provide(context: Context) {
         database = Room.databaseBuilder(context, GameDatabase::class.java, "game.db")
+            .allowMainThreadQueries()
             .fallbackToDestructiveMigration()
             .build()
+        clearDatabase()
     }
 
     fun clearDatabase() {

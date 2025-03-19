@@ -28,4 +28,10 @@ interface GameSessionDao {
 
     @Delete
     suspend fun deleteGameSession(game: GameSession)
+
+    @Query("UPDATE game_sessions SET currentRound = currentRound + 1 WHERE id = :gameSessionId")
+    suspend fun nextRound(gameSessionId: Long)
+
+    @Query("SELECT currentRound FROM game_sessions WHERE id = :gameSessionId")
+    suspend fun getCurrentRound(gameSessionId: Long): Int
 }
