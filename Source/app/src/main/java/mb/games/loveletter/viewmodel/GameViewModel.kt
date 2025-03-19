@@ -8,6 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.Cards
@@ -27,6 +30,9 @@ class GameViewModel(
 
     private val _currentGameSession = mutableStateOf<GameSession?>(null)
     val currentGameSession: State<GameSession?> = _currentGameSession
+
+    private var _deck = MutableStateFlow<Deck?>(null)
+    val deck: StateFlow<Deck?> = _deck.asStateFlow()
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -102,7 +108,8 @@ class GameViewModel(
     fun startNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
             val deck = Deck.createNewDeck()
-            val deckIds = deck.getCards().map { it.id }
+            _deck.value = deck
+            val deckIds = deck.getCards().map { it.id } //TODO: use or not use the database to store deck information?
 
             val gameSession = GameSession(
                 playerIds = playerIds,
@@ -123,6 +130,13 @@ class GameViewModel(
                     discardPile = emptyList<Int>().toMutableList()
                 )
                 playerStateRepository.insertPlayerState(playerState) // Save to DB
+            }
+
+            val hands = deck.deal(playerIds)
+
+            // Update the database with dealt hands
+            for ((playerId, card) in hands) {
+                playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
         }
     }
