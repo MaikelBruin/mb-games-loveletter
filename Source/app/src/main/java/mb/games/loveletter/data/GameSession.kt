@@ -10,5 +10,6 @@ data class GameSession(
     var currentRound: Int = 0,
     val playerIds: List<Long>,
     val deck: MutableList<Int>,
-    val tokensToWin: Int
+    val tokensToWin: Int,
+    var isActive: Boolean = false
 )

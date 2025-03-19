@@ -14,6 +14,10 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         return gameSessionDao.getGameSession(id)
     }
 
+    suspend fun getActiveGameSession(): GameSession {
+        return gameSessionDao.getActiveGameSession()
+    }
+
     suspend fun deleteGameSessions() {
         gameSessionDao.clearGameSessions()
     }

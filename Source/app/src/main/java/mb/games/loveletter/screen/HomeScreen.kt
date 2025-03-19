@@ -63,7 +63,7 @@ fun HomeView(
             LazyColumn {
                 val menuItems = homeMenuItems
                 val hasCurrentGame = viewModel.currentGameSession.value != null
-                if (hasCurrentGame) menuItems.add(continueGameMenuItem)
+                if (hasCurrentGame && !menuItems.contains(continueGameMenuItem)) menuItems.add(0, continueGameMenuItem)
                 items(homeMenuItems) { menuItem ->
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {

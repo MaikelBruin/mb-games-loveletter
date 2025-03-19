@@ -27,7 +27,7 @@ object Graph {
             .allowMainThreadQueries()
             .fallbackToDestructiveMigration()
             .build()
-        clearDatabase()
+//        clearDatabase()
     }
 
     fun clearDatabase() {

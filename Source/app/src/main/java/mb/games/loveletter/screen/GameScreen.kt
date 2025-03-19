@@ -32,37 +32,54 @@ fun GameView(
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
     val currentGameSession = viewModel.currentGameSession.value
 
-    //should display logs for player and bot turns
     Row(
         modifier = Modifier.fillMaxSize()
     ) {
+        //left
         Column(
             modifier = Modifier.fillMaxWidth(fraction = 0.5F),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
+            //top left, should display logs for player and bot turns
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
             ) {
-                Text(text = "player names: " + players.value.map { player -> player.name }.toString())
+                Text(text = "player names: " + players.value.map { player -> player.name }
+                    .toString())
+                Text(text = "should show turn logs: ")
             }
+            //bottom left, should display own cards
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(text = "cards in deck: " + currentGameSession?.deck.toString())
+                Text(text = "my own card(s)")
             }
         }
+        //right
         Column(
             modifier = Modifier.fillMaxWidth(fraction = 0.5F),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Top,
         ) {
+            //top right, should show deck information
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start
             ) {
-                Text(text = "cards in deck: " + currentGameSession?.deck.toString())
+                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString())
+            }
+
+            //bottom right, should show menu items
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString())
             }
         }
 

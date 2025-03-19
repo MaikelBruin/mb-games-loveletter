@@ -46,6 +46,7 @@ class GameViewModel(
         viewModelScope.launch {
             getAllPlayers = playerRepository.getPlayers()
             getAllGameSessions = gameSessionRepository.getGameSessions()
+            _currentGameSession.value = gameSessionRepository.getActiveGameSession()
         }
     }
 
@@ -106,7 +107,8 @@ class GameViewModel(
             val gameSession = GameSession(
                 playerIds = playerIds,
                 deck = deckIds.toMutableList(),
-                tokensToWin = getNumberOfTokensToWin(playerIds.size)
+                tokensToWin = getNumberOfTokensToWin(playerIds.size),
+                isActive = true
             )
             val gameId = gameSessionRepository.addGameSession(gameSession) // Save to DB
             _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
