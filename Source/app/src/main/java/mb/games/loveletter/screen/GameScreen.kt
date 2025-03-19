@@ -34,6 +34,7 @@ fun GameView(
     val currentGameSession = viewModel.currentGameSession.value
     val humanPlayer = viewModel.humanPlayer.collectAsState()
     val playerState = viewModel.playerState.collectAsState()
+    val deck = viewModel.deck.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxSize()
@@ -76,7 +77,7 @@ fun GameView(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.End
             ) {
-                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString())
+                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString()) //FIXME: deck is less than 21 cards because hands are dealt
             }
 
             //bottom right, should show menu items
