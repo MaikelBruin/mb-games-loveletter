@@ -3,6 +3,7 @@ package mb.games.loveletter.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.ExperimentalMaterialApi
@@ -43,7 +44,9 @@ fun GameView(
         ) {
             //top left, should display logs for player and bot turns
             Row(
-                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
+                modifier = Modifier.fillMaxHeight(0.5F),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start
             ) {
                 Text(text = "player names: " + players.value.map { player -> player.name }
                     .toString())
@@ -51,9 +54,9 @@ fun GameView(
             }
             //bottom left, should display own cards
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.Start
             ) {
                 Text(text = "my own card(s)")
             }
@@ -66,20 +69,20 @@ fun GameView(
         ) {
             //top right, should show deck information
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.Start
+                horizontalArrangement = Arrangement.End
             ) {
                 Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString())
             }
 
             //bottom right, should show menu items
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.End
             ) {
-                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString())
+                Text(text = "should show menu items")
             }
         }
 
