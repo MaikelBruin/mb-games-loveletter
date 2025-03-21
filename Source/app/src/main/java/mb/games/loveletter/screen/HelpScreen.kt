@@ -43,10 +43,7 @@ fun HelpView(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.card_overview),
-                contentDescription = "card overview"
-            )
+            OverviewCard()
         }
     }
 
