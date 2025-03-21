@@ -153,7 +153,7 @@ fun NewGameView(
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
                             "Start game" -> {
-                                viewModel.startNewGame(players.value.map { player -> player.id })
+                                viewModel.onStartNewGame(players.value.map { player -> player.id })
                                 onStartGame()
                             }
 

@@ -42,7 +42,7 @@ class GameViewModel(
     val deck: StateFlow<Deck?> = _deck.asStateFlow()
 
     private val _humanPlayer = MutableStateFlow<Player?>(null)
-    val humanPlayer: StateFlow<Player?> = _humanPlayer.asStateFlow()
+    val humanPlayer: StateFlow<Player?> = _humanPlayer
 
     private val _humanPlayerState = MutableStateFlow<PlayerState?>(null)
     val humanPlayerState: StateFlow<PlayerState?> = _humanPlayerState.asStateFlow()
@@ -128,7 +128,7 @@ class GameViewModel(
         return gameSessionRepository.getGameSession(id)
     }
 
-    fun startNewGame(playerIds: List<Long>) {
+    fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
             val deck = Deck.createNewDeck()
             val turnOrder = playerIds.shuffled()

@@ -30,7 +30,7 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val playerState = viewModel.humanPlayerState.collectAsState(initial = null)
+    val playerState = viewModel.humanPlayerState.collectAsState()
     val currentPlayer = viewModel.currentPlayer.value
 
     Row(
@@ -69,14 +69,17 @@ fun GameView(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Start
             ) {
-                val cardsInHand = Cards.fromIds(playerState.value?.hand ?: emptyList()) //FIXME: playerState is null here
+
                 Column {
                     Row {
                         Text(text = "My card(s):")
                     }
                     LazyRow {
-                        items(cardsInHand) { card ->
-                            CardItemView(card = card)
+                        playerState.value?.let {
+                            val cards = Cards.fromIds(it.hand)
+                            items(cards) { card ->
+                                CardItemView(card = card)
+                            }
                         }
                     }
                 }
