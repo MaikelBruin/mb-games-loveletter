@@ -19,20 +19,17 @@ import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun GameScreen(
-    navController: NavController, viewModel: GameViewModel, onBackToHome: () -> Unit
+    viewModel: GameViewModel
 ) {
-    GameView(navController, viewModel, onBackToHome)
+    GameView(viewModel)
 }
 
 @Composable
 fun GameView(
-    navController: NavController, viewModel: GameViewModel, onBackToHome: () -> Unit
+    viewModel: GameViewModel
 ) {
-    val context = LocalContext.current
-    val scaffoldState = rememberScaffoldState()
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
     val currentGameSession = viewModel.currentGameSession.value
-    val humanPlayer = viewModel.humanPlayer.collectAsState()
     val playerState = viewModel.playerState.collectAsState()
     val deck = viewModel.deck.collectAsState()
 

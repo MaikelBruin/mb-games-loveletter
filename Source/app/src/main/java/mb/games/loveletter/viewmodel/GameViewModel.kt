@@ -102,13 +102,6 @@ class GameViewModel(
     }
 
     //game sessions
-    fun addGameSession(gameSession: GameSession) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val gameSessionId = gameSessionRepository.addGameSession(game = gameSession)
-            _currentGameSession.value = gameSessionRepository.getGameSession(gameSessionId)
-        }
-    }
-
     fun updateGameSession(gameSession: GameSession) {
         viewModelScope.launch(Dispatchers.IO) {
             gameSessionRepository.updateGameSession(game = gameSession)
@@ -117,13 +110,6 @@ class GameViewModel(
 
     suspend fun getGameSession(id: Long): GameSession {
         return gameSessionRepository.getGameSession(id)
-    }
-
-    fun deleteGameSession(gameSession: GameSession) {
-        viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.deleteGameSession(game = gameSession)
-            getAllGameSessions = gameSessionRepository.getGameSessions()
-        }
     }
 
     fun startNewGame(playerIds: List<Long>) {

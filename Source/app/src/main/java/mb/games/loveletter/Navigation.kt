@@ -51,9 +51,9 @@ fun NavigationGraph(
                 onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
         }
         composable(Screen.GameScreen.route) {
-            GameScreen(navController = navHostController,
-                viewModel = gameViewModel,
-                onBackToHome = { navHostController.navigate(Screen.HomeScreen.route) })
+            GameScreen(
+                viewModel = gameViewModel
+            )
         }
         composable(Screen.AddPlayerScreen.route + "/{id}", arguments = listOf(navArgument("id") {
             type = NavType.IntType
