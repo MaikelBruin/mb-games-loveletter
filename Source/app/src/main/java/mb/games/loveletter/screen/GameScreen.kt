@@ -32,7 +32,7 @@ fun GameView(
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
     val currentGameSession = viewModel.currentGameSession.value
     val playerState = viewModel.playerState.collectAsState()
-    val currentPlayerName = viewModel.currentPlayerName.value
+    val currentPlayer = viewModel.currentPlayer.value
     val deck = viewModel.deck.collectAsState()
     val currentTurn = viewModel.currentTurn.value
 
@@ -62,7 +62,7 @@ fun GameView(
                         )
                     }
                     Row {
-                        Text(text = "Current turn: $currentPlayerName")
+                        Text(text = "Current turn: ${currentPlayer?.name}")
                     }
                 }
             }

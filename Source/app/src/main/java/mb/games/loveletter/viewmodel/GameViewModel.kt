@@ -34,8 +34,8 @@ class GameViewModel(
     private val _currentTurn = mutableLongStateOf(0)
     val currentTurn: State<Long> = _currentTurn
 
-    private val _currentPlayerName = mutableStateOf("Unknown")
-    val currentPlayerName: State<String> = _currentPlayerName
+    private val _currentPlayer = mutableStateOf<Player?>(null)
+    val currentPlayer: State<Player?> = _currentPlayer
 
     private var _deck = MutableStateFlow<Deck?>(null)
     val deck: StateFlow<Deck?> = _deck.asStateFlow()
@@ -67,9 +67,9 @@ class GameViewModel(
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
             if (currentGameSession.value != null) {
                 _currentTurn.longValue = _currentGameSession.value!!.turnOrder.first()
-                _currentPlayerName.value =
-                    playerRepository.getPlayerByIdSuspend(_currentTurn.longValue).name
-                getHumanPlayerForActiveGame()
+                _currentPlayer.value =
+                    playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
+                getHumanPlayerStateForActiveGame()
             }
         }
     }
@@ -91,7 +91,7 @@ class GameViewModel(
         return playerRepository.getPlayerById(id)
     }
 
-    private fun getHumanPlayerForActiveGame() {
+    private fun getHumanPlayerStateForActiveGame() {
         viewModelScope.launch(Dispatchers.IO) {
             val gameSessionId = _currentGameSession.value?.id
             if (gameSessionId == null) {
@@ -101,7 +101,7 @@ class GameViewModel(
                 _humanPlayer.value = player
                 player?.let {
                     // Once the first human player is found, fetch their player state
-                    loadPlayerState(it.id)
+                    getPlayerState(it.id)
                 }
             }
         }
@@ -162,13 +162,13 @@ class GameViewModel(
                 playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
 
-            getHumanPlayerForActiveGame()
-            _currentPlayerName.value = playerRepository.getPlayerByIdSuspend(turnOrder.first()).name
+            getHumanPlayerStateForActiveGame()
+            _currentPlayer.value = playerRepository.getPlayerByIdSuspend(turnOrder.first())
         }
     }
 
     //player state
-    private fun loadPlayerState(playerId: Long) {
+    private fun getPlayerState(playerId: Long) {
         viewModelScope.launch {
             _playerState.value = playerStateRepository.getPlayerState(playerId)
         }
