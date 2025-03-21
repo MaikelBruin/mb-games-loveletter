@@ -47,14 +47,15 @@ fun GameView(
             verticalArrangement = Arrangement.Top,
         ) {
             //top left, should display logs for player and bot turns
-            //TODO: move to view-model?
-            val playerNames = players.value.map { player -> player.name }
-            var currentPlayerTurn =
-                players.value.firstOrNull() { player -> player.id == currentTurn }
-            if (currentPlayerTurn == null) {
-                currentPlayerTurn = players.value.first()
-            }
-            val currentPlayerName = currentPlayerTurn.name
+            val playersInGame = players.value
+            val playerNames = playersInGame.map { player -> player.name }
+            //FIXME: if I try to get the current turn here, the app crashes, does this have something to do with accessing players twice?
+//            var currentPlayerTurn =
+//                playersInGame.firstOrNull() { player -> player.id == currentTurn }
+//            if (currentPlayerTurn == null) {
+//                currentPlayerTurn = playersInGame.first()
+//            }
+//            val currentPlayerName = currentPlayerTurn.name
             Row(
                 modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
@@ -66,9 +67,9 @@ fun GameView(
                             text = "player names: $playerNames"
                         )
                     }
-                    Row {
-                        Text(text = "Current turn: $currentPlayerName")
-                    }
+//                    Row {
+//                        Text(text = "Current turn: $currentPlayerName")
+//                    }
                 }
             }
             //bottom left, should display own cards
