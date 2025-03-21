@@ -28,14 +28,14 @@ class GameViewModel(
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
+    private val _currentGameSession = mutableStateOf<GameSession?>(null)
+    val currentGameSession: State<GameSession?> = _currentGameSession
+
     private val _currentTurn = mutableLongStateOf(0)
     val currentTurn: State<Long> = _currentTurn
 
     private val _currentPlayerName = mutableStateOf("Unknown")
     val currentPlayerName: State<String> = _currentPlayerName
-
-    private val _currentGameSession = mutableStateOf<GameSession?>(null)
-    val currentGameSession: State<GameSession?> = _currentGameSession
 
     private var _deck = MutableStateFlow<Deck?>(null)
     val deck: StateFlow<Deck?> = _deck.asStateFlow()
