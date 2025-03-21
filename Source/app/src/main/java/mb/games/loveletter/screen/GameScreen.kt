@@ -76,12 +76,10 @@ fun GameView(
                         Text(text = "My card(s):")
                     }
                     //FIXME: why is the player state null???
+//                    val cardsInHand = Cards.fromIds(playerState!!.hand)
 //                    LazyRow {
-//                        playerState?.let {
-//                            val cards = Cards.fromIds(it.hand)
-//                            items(cards) { card ->
-//                                CardItemView(card = card)
-//                            }
+//                        items(cardsInHand) { card ->
+//                            CardItemView(card = card)
 //                        }
 //                    }
                 }
@@ -111,7 +109,6 @@ fun GameView(
                 Text(text = "should show menu items")
             }
         }
-
     }
 }
 

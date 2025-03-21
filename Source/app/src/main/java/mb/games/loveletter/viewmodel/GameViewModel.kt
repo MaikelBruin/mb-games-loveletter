@@ -106,8 +106,11 @@ class GameViewModel(
     private suspend fun loadActiveGameState(gameSession: GameSession) {
         _currentTurn.longValue = gameSession.turnOrder.first()
         _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
-        _humanPlayer.value = playerRepository.getHumanPlayer(gameSession.id)
-        _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.value!!.id)
+        val humanPlayer = playerRepository.getHumanPlayer(gameSession.id)
+        if (humanPlayer != null) {
+            _humanPlayer.value = humanPlayer
+            _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.id)
+        }
     }
 
     fun deletePlayer(player: Player) {
