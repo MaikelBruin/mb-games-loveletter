@@ -35,15 +35,6 @@ interface PlayerDao {
     @Query("SELECT * FROM players WHERE isHuman == 0")
     suspend fun getAllBots(): List<Player>
 
-    @Query(
-        """
-        SELECT players.* FROM players
-        INNER JOIN player_states ON players.id = player_states.playerId
-        WHERE player_states.gameSessionId = :gameSessionId
-        AND players.isHuman = 1
-        AND player_states.isAlive = 1
-        LIMIT 1
-    """
-    )
-    suspend fun getFirstHumanPlayer(gameSessionId: Long): Player?
+    @Query("SELECT * FROM players WHERE gameSessionId =:gameSessionId LIMIT 1")
+    suspend fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Player?
 }

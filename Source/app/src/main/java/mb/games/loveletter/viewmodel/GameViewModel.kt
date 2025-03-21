@@ -44,8 +44,8 @@ class GameViewModel(
     private val _humanPlayer = MutableStateFlow<Player?>(null)
     val humanPlayer: StateFlow<Player?> = _humanPlayer.asStateFlow()
 
-    private val _playerState = MutableStateFlow<PlayerState?>(null)
-    val playerState: StateFlow<PlayerState?> = _playerState.asStateFlow()
+    private val _humanPlayerState = MutableStateFlow<PlayerState?>(null)
+    val humanPlayerState: StateFlow<PlayerState?> = _humanPlayerState.asStateFlow()
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -106,11 +106,8 @@ class GameViewModel(
     private suspend fun loadActiveGameState(gameSession: GameSession) {
         _currentTurn.longValue = gameSession.turnOrder.first()
         _currentPlayer.value = playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
-        val player = playerRepository.getHumanPlayer(gameSession.id)
-        _humanPlayer.value = player
-        player?.let {
-            getPlayerState(it.id)
-        }
+        _humanPlayer.value = playerRepository.getHumanPlayer(gameSession.id)
+        _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.value!!.id)
     }
 
     fun deletePlayer(player: Player) {
@@ -145,10 +142,7 @@ class GameViewModel(
             // Create empty player states
             playerIds.forEach { playerId ->
                 val playerState = PlayerState(
-                    gameSessionId = gameSession.id,
-                    playerId = playerId,
-                    hand = emptyList<Int>().toMutableList(),
-                    discardPile = emptyList<Int>().toMutableList()
+                    gameSessionId = gameSession.id, playerId = playerId
                 )
                 playerStateRepository.insertPlayerState(playerState)
             }
@@ -169,7 +163,7 @@ class GameViewModel(
     //player state
     private fun getPlayerState(playerId: Long) {
         viewModelScope.launch {
-            _playerState.value = playerStateRepository.getPlayerState(playerId)
+            _humanPlayerState.value = playerStateRepository.getPlayerState(playerId)
         }
     }
 

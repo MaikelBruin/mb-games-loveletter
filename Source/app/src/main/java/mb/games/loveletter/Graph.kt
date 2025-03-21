@@ -8,7 +8,7 @@ import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.PlayerStateRepository
 
 object Graph {
-    lateinit var database: GameDatabase
+    private lateinit var database: GameDatabase
 
     val playerRepository by lazy {
         PlayerRepository(playerDao = database.playerDao())

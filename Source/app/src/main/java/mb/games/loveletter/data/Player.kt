@@ -9,5 +9,6 @@ data class Player(
     val name: String,
     var wins: Int = 0,
     var plays: Int = 0,
-    val isHuman: Boolean = false
+    val isHuman: Boolean = false,
+    var gameSessionId: Long = 0
 )

@@ -27,7 +27,7 @@ class PlayerRepository(private val playerDao: PlayerDao) {
     }
 
     suspend fun getHumanPlayer(gameSessionId: Long): Player? {
-        return playerDao.getFirstHumanPlayer(gameSessionId)
+        return playerDao.getFirstHumanPlayerForGameSession(gameSessionId)
     }
 
 }

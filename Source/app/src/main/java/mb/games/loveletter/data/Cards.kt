@@ -48,11 +48,12 @@ sealed class Cards(val id: Int, val cardType: CardType) {
             Princess,
         )
 
-        fun fromId(id: Int): Cards {
+        private fun fromId(id: Int): Cards {
             return allCards.first { cards -> cards.id == id }
         }
 
         fun fromIds(ids: List<Int>): List<Cards> {
+            if (ids.isEmpty()) return emptyList()
             val results = mutableListOf<Cards>()
             ids.forEach { id -> results.add(fromId(id))}
             return results.toList()

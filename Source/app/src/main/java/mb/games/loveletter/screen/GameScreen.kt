@@ -30,7 +30,7 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val playerState = viewModel.playerState.collectAsState()
+    val playerState = viewModel.humanPlayerState.collectAsState(initial = null)
     val currentPlayer = viewModel.currentPlayer.value
 
     Row(
@@ -69,7 +69,7 @@ fun GameView(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Start
             ) {
-                val cardsInHand = Cards.fromIds(playerState.value!!.hand)
+                val cardsInHand = Cards.fromIds(playerState.value?.hand ?: emptyList()) //FIXME: playerState is null here
                 Column {
                     Row {
                         Text(text = "My card(s):")
