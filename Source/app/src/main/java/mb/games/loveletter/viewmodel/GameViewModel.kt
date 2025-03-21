@@ -105,7 +105,7 @@ class GameViewModel(
 
     private suspend fun loadActiveGameState(gameSession: GameSession) {
         _currentTurn.longValue = gameSession.turnOrder.first()
-        _currentPlayer.value = playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
+        _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
         _humanPlayer.value = playerRepository.getHumanPlayer(gameSession.id)
         _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.value!!.id)
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import mb.games.loveletter.data.Cards
@@ -30,8 +31,8 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val playerState = viewModel.humanPlayerState.collectAsState()
-    val currentPlayer = viewModel.currentPlayer.value
+    val playerState by viewModel.humanPlayerState.collectAsState()
+    val currentPlayer by viewModel.currentPlayer
 
     Row(
         modifier = Modifier
@@ -74,14 +75,15 @@ fun GameView(
                     Row {
                         Text(text = "My card(s):")
                     }
-                    LazyRow {
-                        playerState.value?.let {
-                            val cards = Cards.fromIds(it.hand)
-                            items(cards) { card ->
-                                CardItemView(card = card)
-                            }
-                        }
-                    }
+                    //FIXME: why is the player state null???
+//                    LazyRow {
+//                        playerState?.let {
+//                            val cards = Cards.fromIds(it.hand)
+//                            items(cards) { card ->
+//                                CardItemView(card = card)
+//                            }
+//                        }
+//                    }
                 }
             }
         }
