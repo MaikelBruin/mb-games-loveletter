@@ -62,7 +62,9 @@ class GameViewModel(
             getAllPlayers = playerRepository.getPlayers()
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
-            getHumanPlayerForActiveGame()
+            if (currentGameSession.value != null) {
+                getHumanPlayerForActiveGame()
+            }
         }
     }
 
@@ -85,12 +87,16 @@ class GameViewModel(
 
     private fun getHumanPlayerForActiveGame() {
         viewModelScope.launch(Dispatchers.IO) {
-            val gameSessionId = _currentGameSession.value!!.id
-            val player = playerStateRepository.getHumanPlayer(gameSessionId)
-            _humanPlayer.value = player
-            player?.let {
-                // Once the first human player is found, fetch their player state
-                loadPlayerState(it.id)
+            val gameSessionId = _currentGameSession.value?.id
+            if (gameSessionId == null) {
+                _humanPlayer.value = null
+            } else {
+                val player = playerStateRepository.getHumanPlayer(gameSessionId)
+                _humanPlayer.value = player
+                player?.let {
+                    // Once the first human player is found, fetch their player state
+                    loadPlayerState(it.id)
+                }
             }
         }
     }
@@ -149,6 +155,8 @@ class GameViewModel(
             for ((playerId, card) in hands) {
                 playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
+
+            getHumanPlayerForActiveGame()
         }
     }
 
