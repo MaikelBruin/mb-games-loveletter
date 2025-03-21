@@ -2,6 +2,7 @@ package mb.games.loveletter.viewmodel
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -27,8 +28,8 @@ class GameViewModel(
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
-    private val _currentTurn = mutableStateOf<Long?>(null)
-    val currentTurn: State<Long?> = _currentTurn
+    private val _currentTurn = mutableLongStateOf(0)
+    val currentTurn: State<Long> = _currentTurn
 
     private val _currentGameSession = mutableStateOf<GameSession?>(null)
     val currentGameSession: State<GameSession?> = _currentGameSession
