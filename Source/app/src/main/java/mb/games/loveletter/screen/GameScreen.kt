@@ -30,11 +30,8 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val currentGameSession = viewModel.currentGameSession.value
     val playerState = viewModel.playerState.collectAsState()
     val currentPlayer = viewModel.currentPlayer.value
-    val deck = viewModel.deck.collectAsState()
-    val currentTurn = viewModel.currentTurn.value
 
     Row(
         modifier = Modifier
@@ -97,7 +94,7 @@ fun GameView(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.End
             ) {
-                Text(text = "cards remaining in deck: " + currentGameSession?.deck?.size.toString()) //FIXME: deck is less than 21 cards because hands are dealt
+                Text(text = "cards remaining in deck: placeholder")  //FIXME: deck is less than 21 cards because hands are dealt
             }
 
             //bottom right, should show menu items

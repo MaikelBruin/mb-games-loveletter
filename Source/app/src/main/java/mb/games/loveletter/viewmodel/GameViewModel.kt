@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.Deck
@@ -58,11 +59,16 @@ class GameViewModel(
     }
 
     lateinit var getAllPlayers: Flow<List<Player>>
-    lateinit var getAllGameSessions: Flow<List<GameSession>>
+    private lateinit var getAllGameSessions: Flow<List<GameSession>>
 
     init {
         viewModelScope.launch {
-            getAllPlayers = playerRepository.getPlayers()
+            val players = playerRepository.getPlayers()
+            getAllPlayers = players
+            if (players.first().isEmpty()) {
+                insertDefaultPlayers()
+            }
+
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
             if (currentGameSession.value != null) {
@@ -72,6 +78,15 @@ class GameViewModel(
     }
 
     //players
+    private suspend fun insertDefaultPlayers() {
+        val defaultPlayers = listOf(
+            Player(name = "MB", isHuman = true), Player(name = "Bot 1"), Player(name = "Bot 2")
+        )
+        defaultPlayers.forEach { player ->
+            playerRepository.addPlayer(player)
+        }
+    }
+
     fun addPlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
             playerRepository.addPlayer(player = player)
@@ -90,8 +105,7 @@ class GameViewModel(
 
     private suspend fun loadActiveGameState(gameSession: GameSession) {
         _currentTurn.longValue = gameSession.turnOrder.first()
-        _currentPlayer.value =
-            playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
+        _currentPlayer.value = playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
         val player = playerRepository.getHumanPlayer(gameSession.id)
         _humanPlayer.value = player
         player?.let {
@@ -120,13 +134,10 @@ class GameViewModel(
     fun startNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
             val deck = Deck.createNewDeck()
-            val deckIds = deck.getCards().map { it.id } //TODO: remove deck state from db?
-
             val turnOrder = playerIds.shuffled()
             val gameSession = GameSession(
                 playerIds = playerIds,
                 turnOrder = turnOrder,
-                deck = deckIds.toMutableList(),
                 tokensToWin = getNumberOfTokensToWin(playerIds.size),
                 isActive = true
             )
