@@ -131,7 +131,7 @@ class GameViewModel(
             val gameId = gameSessionRepository.addGameSession(gameSession)
             _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
 
-            _currentTurn.value = turnOrder.first()
+            _currentTurn.longValue = turnOrder.first()
 
             // Create empty player states
             playerIds.forEach { playerId ->
