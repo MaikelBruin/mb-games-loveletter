@@ -20,6 +20,9 @@ interface PlayerDao {
     @Query("SELECT * FROM players WHERE id=:id")
     fun getPlayerById(id: Long): Flow<Player>
 
+    @Query("SELECT * FROM players WHERE id=:id")
+    suspend fun getPlayerByIdSuspend(id: Long): Player
+
     @Update
     suspend fun updatePlayer(player: Player)
 

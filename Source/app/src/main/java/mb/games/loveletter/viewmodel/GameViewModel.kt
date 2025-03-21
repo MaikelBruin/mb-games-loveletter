@@ -31,6 +31,9 @@ class GameViewModel(
     private val _currentTurn = mutableLongStateOf(0)
     val currentTurn: State<Long> = _currentTurn
 
+    private val _currentPlayerName = mutableStateOf("Unknown")
+    val currentPlayerName: State<String> = _currentPlayerName
+
     private val _currentGameSession = mutableStateOf<GameSession?>(null)
     val currentGameSession: State<GameSession?> = _currentGameSession
 
@@ -63,6 +66,9 @@ class GameViewModel(
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
             if (currentGameSession.value != null) {
+                _currentTurn.longValue = _currentGameSession.value!!.turnOrder.first()
+                _currentPlayerName.value =
+                    playerRepository.getPlayerByIdSuspend(_currentTurn.longValue).name
                 getHumanPlayerForActiveGame()
             }
         }
@@ -157,6 +163,7 @@ class GameViewModel(
             }
 
             getHumanPlayerForActiveGame()
+            _currentPlayerName.value = playerRepository.getPlayerByIdSuspend(turnOrder.first()).name
         }
     }
 
