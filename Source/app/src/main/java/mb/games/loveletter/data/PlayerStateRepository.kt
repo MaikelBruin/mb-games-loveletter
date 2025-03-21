@@ -10,10 +10,6 @@ class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
         playerStateDao.updateHand(playerId, hand)
     }
 
-    suspend fun getHumanPlayer(gameSessionId: Long): Player? {
-        return playerStateDao.getFirstHumanPlayer(gameSessionId)
-    }
-
     suspend fun getPlayerState(playerId: Long): PlayerState {
         return playerStateDao.getPlayerState(playerId)
     }

@@ -26,16 +26,6 @@ interface PlayerStateDao {
     @Query("UPDATE player_states SET hand = :hand WHERE playerId = :playerId")
     suspend fun updateHand(playerId: Long, hand: List<Int>)
 
-    @Query(
-        """
-        SELECT players.* FROM players
-        INNER JOIN player_states ON players.id = player_states.playerId
-        WHERE player_states.gameSessionId = :gameSessionId
-        AND players.isHuman = 1
-        AND player_states.isAlive = 1
-        LIMIT 1
-    """
-    )
-    suspend fun getFirstHumanPlayer(gameSessionId: Long): Player?
+
 
 }

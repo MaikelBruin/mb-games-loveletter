@@ -66,10 +66,7 @@ class GameViewModel(
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
             if (currentGameSession.value != null) {
-                _currentTurn.longValue = _currentGameSession.value!!.turnOrder.first()
-                _currentPlayer.value =
-                    playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
-                getHumanPlayerStateForActiveGame()
+                loadActiveGameState(currentGameSession.value!!)
             }
         }
     }
@@ -91,19 +88,14 @@ class GameViewModel(
         return playerRepository.getPlayerById(id)
     }
 
-    private fun getHumanPlayerStateForActiveGame() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val gameSessionId = _currentGameSession.value?.id
-            if (gameSessionId == null) {
-                _humanPlayer.value = null
-            } else {
-                val player = playerStateRepository.getHumanPlayer(gameSessionId)
-                _humanPlayer.value = player
-                player?.let {
-                    // Once the first human player is found, fetch their player state
-                    getPlayerState(it.id)
-                }
-            }
+    private suspend fun loadActiveGameState(gameSession: GameSession) {
+        _currentTurn.longValue = gameSession.turnOrder.first()
+        _currentPlayer.value =
+            playerRepository.getPlayerByIdSuspend(_currentTurn.longValue)
+        val player = playerRepository.getHumanPlayer(gameSession.id)
+        _humanPlayer.value = player
+        player?.let {
+            getPlayerState(it.id)
         }
     }
 
@@ -128,7 +120,6 @@ class GameViewModel(
     fun startNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
             val deck = Deck.createNewDeck()
-            _deck.value = deck
             val deckIds = deck.getCards().map { it.id } //TODO: remove deck state from db?
 
             val turnOrder = playerIds.shuffled()
@@ -140,15 +131,10 @@ class GameViewModel(
                 isActive = true
             )
 
-            val gameId = gameSessionRepository.addGameSession(gameSession)
-            _currentGameSession.value = gameSessionRepository.getGameSession(gameId)
-
-            _currentTurn.longValue = turnOrder.first()
-
             // Create empty player states
             playerIds.forEach { playerId ->
                 val playerState = PlayerState(
-                    gameSessionId = gameId,
+                    gameSessionId = gameSession.id,
                     playerId = playerId,
                     hand = emptyList<Int>().toMutableList(),
                     discardPile = emptyList<Int>().toMutableList()
@@ -157,13 +143,15 @@ class GameViewModel(
             }
 
             val hands = deck.deal(playerIds)
-
             for ((playerId, card) in hands) {
                 playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
 
-            getHumanPlayerStateForActiveGame()
-            _currentPlayer.value = playerRepository.getPlayerByIdSuspend(turnOrder.first())
+            //update states
+            _currentGameSession.value = gameSession
+            _currentTurn.longValue = turnOrder.first()
+            _deck.value = deck
+            loadActiveGameState(gameSession)
         }
     }
 

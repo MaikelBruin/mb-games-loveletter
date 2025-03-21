@@ -26,4 +26,8 @@ class PlayerRepository(private val playerDao: PlayerDao) {
         playerDao.deletePlayer(player)
     }
 
+    suspend fun getHumanPlayer(gameSessionId: Long): Player? {
+        return playerDao.getFirstHumanPlayer(gameSessionId)
+    }
+
 }
