@@ -10,12 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import mb.games.loveletter.data.DummyGameSession
 import mb.games.loveletter.data.continueGameMenuItem
 import mb.games.loveletter.data.homeMenuItems
 import mb.games.loveletter.viewmodel.GameViewModel
@@ -45,7 +45,8 @@ fun HomeView(
     onNavigateToHelp: () -> Unit,
     onNavigateToAbout: () -> Unit
 ) {
-    val hasCurrentGame = viewModel.currentGameSession.value != null
+    val activeGame by viewModel.activeGameSession.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -64,7 +65,7 @@ fun HomeView(
         Row {
             LazyColumn {
                 val menuItems = homeMenuItems
-                if (hasCurrentGame && !menuItems.contains(continueGameMenuItem)) menuItems.add(
+                if (activeGame != null && !menuItems.contains(continueGameMenuItem)) menuItems.add(
                     0, continueGameMenuItem
                 )
                 items(homeMenuItems) { menuItem ->

@@ -37,9 +37,6 @@ class GameViewModel(
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
-    private val _currentGameSession = mutableStateOf<GameSession?>(null)
-    val currentGameSession: State<GameSession?> = _currentGameSession
-
     //STATE FLOWS
     private val _currentPlayerState = MutableStateFlow<PlayerState?>(null)
     val currentPlayerState: StateFlow<PlayerState?> = _currentPlayerState.asStateFlow()
@@ -87,8 +84,8 @@ class GameViewModel(
                 insertDefaultPlayers()
             }
 
-            _currentGameSession.value = gameSessionRepository.getActiveGameSessionSuspend()
-            if (_currentGameSession.value != null) {
+            _activeGameSession.value = gameSessionRepository.getActiveGameSessionSuspend()
+            if (activeGameSession.value != null) {
                 loadCurrentGameState()
             }
         }
@@ -146,7 +143,7 @@ class GameViewModel(
             }
 
             //update state
-            _currentGameSession.value = gameSession
+            _activeGameSession.value = gameSession
             loadCurrentGameState()
         }
     }
@@ -164,7 +161,7 @@ class GameViewModel(
 
     //game sessions
     private suspend fun loadCurrentGameState() {
-        val currentTurnId = currentGameSession.value!!.turnOrder.first()
+        val currentTurnId = activeGameSession.value!!.turnOrder.first()
         val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
         val humanPlayerState = playerRepository.getHumanPlayerWithState()
 
