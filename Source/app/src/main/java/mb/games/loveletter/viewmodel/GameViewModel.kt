@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.Deck
@@ -38,8 +36,8 @@ class GameViewModel(
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
-    private val _currentGameSession = MutableStateFlow<GameSession?>(null)
-    val currentGameSession: StateFlow<GameSession?> = _currentGameSession
+    private val _activeGameSession = MutableStateFlow<GameSession?>(null)
+    val activeGameSession: StateFlow<GameSession?> = _activeGameSession
 
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
     val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState
@@ -70,9 +68,9 @@ class GameViewModel(
 
             getAllGameSessions = gameSessionRepository.getGameSessions()
             gameSessionRepository.getActiveGameSession().collect { data ->
-                _currentGameSession.value = data
+                _activeGameSession.value = data
             }
-            if (currentGameSession.value != null) {
+            if (activeGameSession.value != null) {
                 loadCurrentGameState()
             }
         }
@@ -106,7 +104,7 @@ class GameViewModel(
 
     private suspend fun loadCurrentGameState() {
         viewModelScope.launch {
-            currentGameSession.collect { gameSession ->
+            activeGameSession.collect { gameSession ->
                 if (gameSession != null) {
                     _currentTurn.longValue = gameSession.turnOrder.first()
                     _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)

@@ -13,10 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import kotlinx.coroutines.flow.first
 import mb.games.loveletter.data.DummyGameSession
 import mb.games.loveletter.data.continueGameMenuItem
 import mb.games.loveletter.data.homeMenuItems
@@ -48,7 +46,7 @@ fun HomeView(
     onNavigateToAbout: () -> Unit
 ) {
     val hasCurrentGame =
-        viewModel.currentGameSession.collectAsState(initial = DummyGameSession.gameSession).value != null
+        viewModel.activeGameSession.collectAsState(initial = DummyGameSession.gameSession).value != null
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
