@@ -75,7 +75,8 @@ fun GameView(
 
                 Column {
                     Row {
-                        Text(text = "My card(s):")
+                        Text(text = "My card(s): ")
+                        Text(text = humanPlayerWithState?.playerState?.hand.toString())
                     }
                     var cardsInHand = emptyList<Cards>()
                     if (humanPlayerWithState != null) {
