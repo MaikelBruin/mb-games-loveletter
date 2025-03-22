@@ -77,8 +77,12 @@ fun GameView(
                     Row {
                         Text(text = "My card(s):")
                     }
-                    //FIXME: why is the player state null???
-                    val cardsInHand = Cards.fromIds(humanPlayerWithState?.playerState?.hand ?: emptyList())
+                    var cardsInHand = emptyList<Cards>()
+                    if (humanPlayerWithState != null) {
+                        val hand = humanPlayerWithState!!.playerState.hand
+                        cardsInHand = Cards.fromIds(hand)
+                    }
+
                     LazyRow {
                         items(cardsInHand) { card ->
                             CardItemView(card = card)
