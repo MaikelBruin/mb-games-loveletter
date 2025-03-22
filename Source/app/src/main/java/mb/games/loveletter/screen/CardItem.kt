@@ -2,9 +2,11 @@ package mb.games.loveletter.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -66,7 +68,12 @@ fun CardItemView(
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    Text(text = card.cardType.card.longDescription, softWrap = true)
+                    Text(
+                        modifier = Modifier.width(200.dp),
+                        maxLines = 3,
+                        text = card.cardType.card.longDescription,
+                        softWrap = true
+                    )
                 }
             }
         }
