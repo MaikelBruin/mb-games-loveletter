@@ -21,7 +21,7 @@ interface GameSessionDao {
     fun getAllGameSessions(): Flow<List<GameSession>>
 
     @Query("SELECT * FROM game_sessions WHERE isActive = 1")
-    suspend fun getActiveGameSession(): GameSession
+    fun getActiveGameSession(): Flow<GameSession?>
 
     @Query("DELETE FROM game_sessions")
     suspend fun clearGameSessions()

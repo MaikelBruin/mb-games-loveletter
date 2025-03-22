@@ -14,7 +14,7 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         return gameSessionDao.getGameSession(id)
     }
 
-    suspend fun getActiveGameSession(): GameSession {
+    fun getActiveGameSession(): Flow<GameSession?> {
         return gameSessionDao.getActiveGameSession()
     }
 

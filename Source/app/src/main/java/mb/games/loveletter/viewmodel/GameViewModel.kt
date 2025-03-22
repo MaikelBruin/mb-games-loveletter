@@ -63,14 +63,13 @@ class GameViewModel(
 
     init {
         viewModelScope.launch {
-            val players = playerRepository.getPlayers()
-            getAllPlayers = players
-            if (players.first().isEmpty()) {
+            getAllPlayers = playerRepository.getPlayers()
+            if (getAllPlayers.first().isEmpty()) {
                 insertDefaultPlayers()
             }
 
             getAllGameSessions = gameSessionRepository.getGameSessions()
-            _currentGameSession.value = gameSessionRepository.getActiveGameSession()
+            _currentGameSession.value = gameSessionRepository.getActiveGameSession().first()
             if (currentGameSession.value != null) {
                 loadCurrentGameState()
             }
@@ -104,12 +103,15 @@ class GameViewModel(
     }
 
     private suspend fun loadCurrentGameState() {
-        _currentTurn.longValue = currentGameSession.value!!.turnOrder.first()
-        _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
-        val humanPlayer = playerRepository.getHumanPlayer(currentGameSession.value!!.id)
-        if (humanPlayer != null) {
-            _humanPlayer.value = humanPlayer
-            _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.id)
+        viewModelScope.launch {
+            _currentTurn.longValue = currentGameSession.value!!.turnOrder.first()
+            _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
+            _humanPlayer.value = playerRepository.getHumanPlayer(currentGameSession.value!!.id)
+            if (humanPlayer.value != null) {
+                _humanPlayerState.value?.let { getPlayerState(it.playerId) }
+            } else {
+                throw Exception("Cannot start game with only bots!")
+            }
         }
     }
 
