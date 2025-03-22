@@ -18,6 +18,10 @@ class GameSessionRepository(private val gameSessionDao: GameSessionDao) {
         return gameSessionDao.getActiveGameSession()
     }
 
+    suspend fun getActiveGameSessionSuspend(): GameSession? {
+        return gameSessionDao.getActiveGameSessionSuspend()
+    }
+
     suspend fun updateGameSession(game: GameSession) {
         gameSessionDao.updateGameSession(game)
     }

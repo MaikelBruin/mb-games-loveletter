@@ -45,8 +45,7 @@ fun HomeView(
     onNavigateToHelp: () -> Unit,
     onNavigateToAbout: () -> Unit
 ) {
-    val hasCurrentGame =
-        viewModel.activeGameSession.collectAsState(initial = DummyGameSession.gameSession).value != null
+    val hasCurrentGame = viewModel.currentGameSession.value != null
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
