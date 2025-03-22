@@ -121,6 +121,7 @@ class GameViewModel(
     //Game sessions
     fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
+            _deck.value = Deck.createNewDeck()
             val turnOrder = playerIds.shuffled()
             val gameSession = GameSession(
                 playerIds = playerIds,
