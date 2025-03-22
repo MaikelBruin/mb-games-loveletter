@@ -37,6 +37,9 @@ class GameViewModel(
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
+    var playerNameState by mutableStateOf("")
+    var isHumanState by mutableStateOf(false)
+
     //STATE FLOWS
     private val _currentPlayerState = MutableStateFlow<PlayerState?>(null)
     val currentPlayerState: StateFlow<PlayerState?> = _currentPlayerState.asStateFlow()
@@ -49,9 +52,6 @@ class GameViewModel(
 
     private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
-
-    var playerNameState by mutableStateOf("")
-    var isHumanState by mutableStateOf(false)
 
     fun onPlayerNameChanged(newName: String) {
         playerNameState = newName
