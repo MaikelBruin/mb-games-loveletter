@@ -173,7 +173,6 @@ class GameViewModel(
                 onCurrentTurnChanged(currentTurnId)
                 onCurrentPlayerChanged(currentPlayer)
                 onHumanPlayerWithStateChanged(humanPlayerState)
-                loadHumanPlayerState()
             }
         }
     }
@@ -187,19 +186,6 @@ class GameViewModel(
         onCurrentPlayerChanged(currentPlayer)
         onHumanPlayerWithStateChanged(humanPlayerState)
     }
-
-    //player state
-    private suspend fun loadPlayerState(playerId: Long) {
-        val playerState = playerStateRepository.getPlayerState(playerId)
-        _currentPlayerState.value = playerState
-    }
-
-    private suspend fun loadHumanPlayerState() {
-        val humanPlayerWithState = playerRepository.getHumanPlayerWithState()
-        _humanPlayerWithState.value = humanPlayerWithState
-        loadPlayerState(humanPlayerWithState.player.id)
-    }
-
 
     //UTILITY FUNCTIONS
     private fun getNumberOfTokensToWin(playerCount: Int): Int {

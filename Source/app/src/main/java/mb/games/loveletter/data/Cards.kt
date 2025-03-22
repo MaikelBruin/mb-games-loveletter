@@ -26,8 +26,8 @@ sealed class Cards(val id: Int, val cardType: CardType) {
     companion object {
         private val allCards: List<Cards> by lazy {
             listOf(
-                Spy2,
                 Spy1,
+                Spy2,
                 Guard1,
                 Guard2,
                 Guard3,
