@@ -163,20 +163,6 @@ class GameViewModel(
     }
 
     //game sessions
-    private suspend fun loadCurrentGameStateAsFlow() {
-        activeGameSession.collect { gameSession ->
-            if (gameSession != null) {
-                val currentTurnId = gameSession.turnOrder.first()
-                val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
-                val humanPlayerState = playerRepository.getHumanPlayerWithState()
-
-                onCurrentTurnChanged(currentTurnId)
-                onCurrentPlayerChanged(currentPlayer)
-                onHumanPlayerWithStateChanged(humanPlayerState)
-            }
-        }
-    }
-
     private suspend fun loadCurrentGameState() {
         val currentTurnId = currentGameSession.value!!.turnOrder.first()
         val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
