@@ -74,14 +74,14 @@ fun GameView(
             ) {
 
                 Column {
-                    Row {
-                        Text(text = "My card(s): ")
-                        Text(text = humanPlayerWithState?.playerState?.hand.toString())
-                    }
                     var cardsInHand = emptyList<Cards>()
                     if (humanPlayerWithState != null) {
                         val hand = humanPlayerWithState!!.playerState.hand
                         cardsInHand = Cards.fromIds(hand)
+                    }
+                    Row {
+                        Text(text = "My card(s): ")
+                        Text(text = cardsInHand.map { card -> card.cardType.name }.toString())
                     }
 
                     LazyRow {
