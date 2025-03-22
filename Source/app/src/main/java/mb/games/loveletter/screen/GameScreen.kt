@@ -32,9 +32,9 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val playerState = viewModel.getHumanPlayerWithState().collectAsState(initial = DummyPlayerWithState.playerWithState)
     val currentPlayer by viewModel.currentPlayer
     val deck by viewModel.deck.collectAsState()
+    val humanPlayerWithState by viewModel.humanPlayerWithState.collectAsState()
 
     Row(
         modifier = Modifier
@@ -78,7 +78,7 @@ fun GameView(
                         Text(text = "My card(s):")
                     }
                     //FIXME: why is the player state null???
-                    val cardsInHand = Cards.fromIds(playerState.value.playerState.hand)
+                    val cardsInHand = Cards.fromIds(humanPlayerWithState?.playerState?.hand ?: emptyList())
                     LazyRow {
                         items(cardsInHand) { card ->
                             CardItemView(card = card)

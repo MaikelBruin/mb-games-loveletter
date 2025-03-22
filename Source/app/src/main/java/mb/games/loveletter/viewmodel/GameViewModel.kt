@@ -41,6 +41,9 @@ class GameViewModel(
     private val _currentGameSession = MutableStateFlow<GameSession?>(null)
     val currentGameSession: StateFlow<GameSession?> = _currentGameSession
 
+    private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
+    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState
+
     private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
 
@@ -57,7 +60,6 @@ class GameViewModel(
 
     lateinit var getAllPlayers: Flow<List<Player>>
     private lateinit var getAllGameSessions: Flow<List<GameSession>>
-    lateinit var getHumanPlayerWithState: Flow<PlayerWithState>
 
     init {
         viewModelScope.launch {
@@ -67,7 +69,6 @@ class GameViewModel(
             }
 
             getAllGameSessions = gameSessionRepository.getGameSessions()
-            getHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
             gameSessionRepository.getActiveGameSession().collect { data ->
                 _currentGameSession.value = data
             }
@@ -109,6 +110,8 @@ class GameViewModel(
                 if (gameSession != null) {
                     _currentTurn.longValue = gameSession.turnOrder.first()
                     _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
+                    val humanPlayerWithState = playerRepository.getHumanPlayerWithState()
+                    onHumanPlayerWithStateChanged(humanPlayerWithState.first())
                 }
             }
         }
@@ -162,6 +165,12 @@ class GameViewModel(
     }
 
     //player state
+    fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
+       viewModelScope.launch {
+           _humanPlayerWithState.value = playerWithState
+       }
+    }
+
     fun getHumanPlayerWithState(): Flow<PlayerWithState> {
         return playerRepository.getHumanPlayerWithState()
     }
