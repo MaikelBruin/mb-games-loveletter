@@ -41,8 +41,8 @@ class GameViewModel(
     var isHumanState by mutableStateOf(false)
 
     //STATE FLOWS
-    private val _currentPlayerState = MutableStateFlow<PlayerWithState?>(null)
-    val currentPlayerState: StateFlow<PlayerWithState?> = _currentPlayerState.asStateFlow()
+    private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
+    val currentPlayerWithState: StateFlow<PlayerWithState?> = _currentPlayerWithState.asStateFlow()
 
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
     val activeGameSession: StateFlow<GameSession?> = _activeGameSession.asStateFlow()
@@ -71,6 +71,10 @@ class GameViewModel(
 
     fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
         _humanPlayerWithState.value = playerWithState
+    }
+
+    fun onCurrentPlayerWithStateChanged(playerWithState: PlayerWithState) {
+        _currentPlayerWithState.value = playerWithState
     }
 
     lateinit var getAllPlayers: Flow<List<Player>>
@@ -117,9 +121,26 @@ class GameViewModel(
         }
     }
 
-    //turns
-    fun onNewTurn(playerState: PlayerState) {
-        
+    //player with state
+    fun onStartTurn(playerWithState: PlayerWithState) {
+        viewModelScope.launch {
+            val card = _deck.value.drawCard()
+            if (card == null) {
+                onEndRound()
+            } else {
+                playerWithState.playerState.hand.add(card.id)
+                if (playerWithState.player.isHuman) {
+                    println("Play a card")
+                    onHumanPlayerWithStateChanged(playerWithState)
+                } else {
+                    println("Computer should play a card")
+                }
+            }
+        }
+    }
+
+    private fun onEndRound() {
+        println("Round ended!")
     }
 
     //Game sessions
@@ -168,11 +189,14 @@ class GameViewModel(
     private suspend fun loadCurrentGameState() {
         val currentTurnId = activeGameSession.value!!.turnOrder.first()
         val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
+        val currentPlayerWithState = playerRepository.getPlayerWithState(currentTurnId)
         val humanPlayerState = playerRepository.getHumanPlayerWithState()
 
         onCurrentTurnChanged(currentTurnId)
         onCurrentPlayerChanged(currentPlayer)
         onHumanPlayerWithStateChanged(humanPlayerState)
+        onCurrentPlayerWithStateChanged(currentPlayerWithState)
+        onStartTurn(currentPlayerWithState)
     }
 
     //UTILITY FUNCTIONS

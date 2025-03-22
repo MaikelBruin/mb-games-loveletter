@@ -30,4 +30,8 @@ class PlayerRepository(private val playerDao: PlayerDao) {
         return playerDao.getFirstHumanPlayerWithState()
     }
 
+    suspend fun getPlayerWithState(playerId: Long): PlayerWithState {
+        return playerDao.getPlayerWithState(playerId)
+    }
+
 }

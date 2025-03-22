@@ -38,4 +38,8 @@ interface PlayerDao {
     @Query("SELECT * FROM players WHERE isHuman = 1 LIMIT 1")
     suspend fun getFirstHumanPlayerWithState(): PlayerWithState
 
+    @Transaction
+    @Query("SELECT * FROM players WHERE id =:playerId")
+    suspend fun getPlayerWithState(playerId: Long): PlayerWithState
+
 }
