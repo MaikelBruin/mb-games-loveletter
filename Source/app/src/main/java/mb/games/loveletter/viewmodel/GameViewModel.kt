@@ -38,8 +38,8 @@ class GameViewModel(
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
-    private var _deck = MutableStateFlow<Deck?>(null)
-    val deck: StateFlow<Deck?> = _deck.asStateFlow()
+    private var _deck = MutableStateFlow(Deck.createNewDeck())
+    val deck: StateFlow<Deck> = _deck.asStateFlow()
 
     private val _humanPlayer = MutableStateFlow<Player?>(null)
     val humanPlayer: StateFlow<Player?> = _humanPlayer
@@ -72,7 +72,7 @@ class GameViewModel(
             getAllGameSessions = gameSessionRepository.getGameSessions()
             _currentGameSession.value = gameSessionRepository.getActiveGameSession()
             if (currentGameSession.value != null) {
-                loadActiveGameState(currentGameSession.value!!)
+                loadCurrentGameState()
             }
         }
     }
@@ -103,10 +103,10 @@ class GameViewModel(
         return playerRepository.getPlayerById(id)
     }
 
-    private suspend fun loadActiveGameState(gameSession: GameSession) {
-        _currentTurn.longValue = gameSession.turnOrder.first()
+    private suspend fun loadCurrentGameState() {
+        _currentTurn.longValue = currentGameSession.value!!.turnOrder.first()
         _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
-        val humanPlayer = playerRepository.getHumanPlayer(gameSession.id)
+        val humanPlayer = playerRepository.getHumanPlayer(currentGameSession.value!!.id)
         if (humanPlayer != null) {
             _humanPlayer.value = humanPlayer
             _humanPlayerState.value = playerStateRepository.getPlayerState(humanPlayer.id)
@@ -133,7 +133,6 @@ class GameViewModel(
 
     fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
-            val deck = Deck.createNewDeck()
             val turnOrder = playerIds.shuffled()
             val gameSession = GameSession(
                 playerIds = playerIds,
@@ -150,7 +149,7 @@ class GameViewModel(
                 playerStateRepository.insertPlayerState(playerState)
             }
 
-            val hands = deck.deal(playerIds)
+            val hands = deck.value.deal(playerIds)
             for ((playerId, card) in hands) {
                 playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
             }
@@ -158,8 +157,7 @@ class GameViewModel(
             //update states
             _currentGameSession.value = gameSession
             _currentTurn.longValue = turnOrder.first()
-            _deck.value = deck
-            loadActiveGameState(gameSession)
+            loadCurrentGameState()
         }
     }
 
