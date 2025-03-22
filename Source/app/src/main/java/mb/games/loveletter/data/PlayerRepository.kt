@@ -26,8 +26,8 @@ class PlayerRepository(private val playerDao: PlayerDao) {
         playerDao.deletePlayer(player)
     }
 
-    suspend fun getHumanPlayer(gameSessionId: Long): Player? {
-        return playerDao.getFirstHumanPlayerForGameSession(gameSessionId)
+    fun getHumanPlayerWithState(): Flow<PlayerWithState> {
+        return playerDao.getFirstHumanPlayerWithState()
     }
 
 }

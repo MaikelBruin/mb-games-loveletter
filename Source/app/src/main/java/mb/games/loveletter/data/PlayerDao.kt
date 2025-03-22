@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -35,6 +36,15 @@ interface PlayerDao {
     @Query("SELECT * FROM players WHERE isHuman == 0")
     suspend fun getAllBots(): List<Player>
 
+    @Transaction
     @Query("SELECT * FROM players WHERE gameSessionId =:gameSessionId LIMIT 1")
-    suspend fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Player?
+    fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Flow<PlayerWithState>
+
+    @Transaction
+    @Query("SELECT * FROM players WHERE isHuman = 1 LIMIT 1")
+    fun getFirstHumanPlayerWithState(): Flow<PlayerWithState>
+
+    @Transaction
+    @Query("SELECT * FROM players WHERE id = :playerId")
+    fun getPlayerWithState(playerId: Long): Flow<PlayerWithState>
 }

@@ -12,3 +12,9 @@ data class GameSession(
     val tokensToWin: Int,
     var isActive: Boolean = false
 )
+
+object DummyGameSession {
+    val gameSession = GameSession(
+        playerIds = listOf(0, 1, 2), turnOrder = listOf(2, 1, 0), tokensToWin = 1
+    )
+}

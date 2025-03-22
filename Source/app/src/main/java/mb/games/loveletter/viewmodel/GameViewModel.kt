@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.Deck
@@ -22,6 +24,7 @@ import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.PlayerState
 import mb.games.loveletter.data.PlayerStateRepository
+import mb.games.loveletter.data.PlayerWithState
 
 class GameViewModel(
     private val playerRepository: PlayerRepository = Graph.playerRepository,
@@ -29,23 +32,17 @@ class GameViewModel(
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
-    private val _currentGameSession = mutableStateOf<GameSession?>(null)
-    val currentGameSession: State<GameSession?> = _currentGameSession
-
     private val _currentTurn = mutableLongStateOf(0)
     val currentTurn: State<Long> = _currentTurn
 
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
-    private var _deck = MutableStateFlow(Deck.createNewDeck())
+    private val _currentGameSession = MutableStateFlow<GameSession?>(null)
+    val currentGameSession: StateFlow<GameSession?> = _currentGameSession
+
+    private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
-
-    private val _humanPlayer = MutableStateFlow<Player?>(null)
-    val humanPlayer: StateFlow<Player?> = _humanPlayer
-
-    private val _humanPlayerState = MutableStateFlow<PlayerState?>(null)
-    val humanPlayerState: StateFlow<PlayerState?> = _humanPlayerState.asStateFlow()
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -60,6 +57,7 @@ class GameViewModel(
 
     lateinit var getAllPlayers: Flow<List<Player>>
     private lateinit var getAllGameSessions: Flow<List<GameSession>>
+    lateinit var getHumanPlayerWithState: Flow<PlayerWithState>
 
     init {
         viewModelScope.launch {
@@ -69,7 +67,10 @@ class GameViewModel(
             }
 
             getAllGameSessions = gameSessionRepository.getGameSessions()
-            _currentGameSession.value = gameSessionRepository.getActiveGameSession().first()
+            getHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
+            gameSessionRepository.getActiveGameSession().collect { data ->
+                _currentGameSession.value = data
+            }
             if (currentGameSession.value != null) {
                 loadCurrentGameState()
             }
@@ -104,13 +105,11 @@ class GameViewModel(
 
     private suspend fun loadCurrentGameState() {
         viewModelScope.launch {
-            _currentTurn.longValue = currentGameSession.value!!.turnOrder.first()
-            _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
-            _humanPlayer.value = playerRepository.getHumanPlayer(currentGameSession.value!!.id)
-            if (humanPlayer.value != null) {
-                _humanPlayerState.value?.let { getPlayerState(it.playerId) }
-            } else {
-                throw Exception("Cannot start game with only bots!")
+            currentGameSession.collect { gameSession ->
+                if (gameSession != null) {
+                    _currentTurn.longValue = gameSession.turnOrder.first()
+                    _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
+                }
             }
         }
     }
@@ -157,17 +156,14 @@ class GameViewModel(
             }
 
             //update states
-            _currentGameSession.value = gameSession
             _currentTurn.longValue = turnOrder.first()
             loadCurrentGameState()
         }
     }
 
     //player state
-    private fun getPlayerState(playerId: Long) {
-        viewModelScope.launch {
-            _humanPlayerState.value = playerStateRepository.getPlayerState(playerId)
-        }
+    fun getHumanPlayerWithState(): Flow<PlayerWithState> {
+        return playerRepository.getHumanPlayerWithState()
     }
 
     private fun getNumberOfTokensToWin(playerCount: Int): Int {

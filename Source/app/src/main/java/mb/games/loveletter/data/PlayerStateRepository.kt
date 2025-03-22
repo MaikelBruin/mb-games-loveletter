@@ -1,5 +1,7 @@
 package mb.games.loveletter.data
 
+import kotlinx.coroutines.flow.Flow
+
 class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
 
     suspend fun insertPlayerState(playerState: PlayerState) {
@@ -10,7 +12,7 @@ class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
         playerStateDao.updateHand(playerId, hand)
     }
 
-    suspend fun getPlayerState(playerId: Long): PlayerState {
+    fun getPlayerState(playerId: Long): Flow<PlayerState> {
         return playerStateDao.getPlayerState(playerId)
     }
 }

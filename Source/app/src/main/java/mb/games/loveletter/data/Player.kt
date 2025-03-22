@@ -12,3 +12,9 @@ data class Player(
     val isHuman: Boolean = false,
     var gameSessionId: Long = 0
 )
+
+object DummyPlayer {
+    val player = Player(
+        name = "Sheriff"
+    )
+}
