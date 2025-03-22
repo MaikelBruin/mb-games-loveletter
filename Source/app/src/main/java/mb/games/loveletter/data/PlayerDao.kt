@@ -30,12 +30,6 @@ interface PlayerDao {
     @Delete
     suspend fun deletePlayer(player: Player)
 
-    @Query("SELECT * FROM players WHERE isHuman == 1")
-    suspend fun getAllHumanPlayers(): List<Player>
-
-    @Query("SELECT * FROM players WHERE isHuman == 0")
-    suspend fun getAllBots(): List<Player>
-
     @Transaction
     @Query("SELECT * FROM players WHERE gameSessionId =:gameSessionId LIMIT 1")
     fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Flow<PlayerWithState>

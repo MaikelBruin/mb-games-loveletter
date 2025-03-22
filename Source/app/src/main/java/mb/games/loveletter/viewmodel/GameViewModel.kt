@@ -41,8 +41,8 @@ class GameViewModel(
     var isHumanState by mutableStateOf(false)
 
     //STATE FLOWS
-    private val _currentPlayerState = MutableStateFlow<PlayerState?>(null)
-    val currentPlayerState: StateFlow<PlayerState?> = _currentPlayerState.asStateFlow()
+    private val _currentPlayerState = MutableStateFlow<PlayerWithState?>(null)
+    val currentPlayerState: StateFlow<PlayerWithState?> = _currentPlayerState.asStateFlow()
 
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
     val activeGameSession: StateFlow<GameSession?> = _activeGameSession.asStateFlow()
@@ -91,7 +91,6 @@ class GameViewModel(
         }
     }
 
-
     //FLOW FUNCTIONS
     fun getAPlayerById(id: Long): Flow<Player> {
         return playerRepository.getPlayerById(id)
@@ -116,6 +115,11 @@ class GameViewModel(
             playerRepository.deletePlayer(player = player)
             getAllPlayers = playerRepository.getPlayers()
         }
+    }
+
+    //turns
+    fun onNewTurn(playerState: PlayerState) {
+        
     }
 
     //Game sessions
