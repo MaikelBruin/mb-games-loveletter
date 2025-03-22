@@ -14,6 +14,9 @@ interface PlayerStateDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlayerState(playerState: PlayerState)
 
+    @Update
+    suspend fun updatePlayerState(playerState: PlayerState)
+
     @Query("UPDATE player_states SET isAlive = 0 WHERE gameSessionId = :gameSessionId AND playerId = :playerId")
     suspend fun eliminatePlayer(gameSessionId: Long, playerId: Long)
 

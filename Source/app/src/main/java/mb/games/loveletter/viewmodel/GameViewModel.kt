@@ -122,19 +122,25 @@ class GameViewModel(
     }
 
     //player with state
-    fun onStartTurn(playerWithState: PlayerWithState) {
+    fun onStartTurn() {
         viewModelScope.launch {
             val card = _deck.value.drawCard()
             if (card == null) {
                 onEndRound()
             } else {
-                playerWithState.playerState.hand.add(card.id)
-                if (playerWithState.player.isHuman) {
-                    println("Play a card")
-                    onHumanPlayerWithStateChanged(playerWithState)
-                } else {
-                    println("Computer should play a card")
+                _currentPlayerWithState.value.let { currentPlayerWithState ->
+                    val updatedState = currentPlayerWithState!!.copy()
+                    updatedState.playerState.hand.add(card.id)
+                    onCurrentPlayerWithStateChanged(updatedState)
+                    if (currentPlayerWithState.player.isHuman) {
+                        onHumanPlayerWithStateChanged(updatedState)
+                        println("Play a card")
+                    } else {
+                        println("Computer should play a card")
+                    }
+                    println("Number of cards in my hand: '${humanPlayerWithState.value!!.playerState.hand.size}'")
                 }
+
             }
         }
     }
@@ -196,7 +202,7 @@ class GameViewModel(
         onCurrentPlayerChanged(currentPlayer)
         onHumanPlayerWithStateChanged(humanPlayerState)
         onCurrentPlayerWithStateChanged(currentPlayerWithState)
-        onStartTurn(currentPlayerWithState)
+        onStartTurn()
     }
 
     //UTILITY FUNCTIONS
