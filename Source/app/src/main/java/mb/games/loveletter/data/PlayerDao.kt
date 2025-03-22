@@ -42,9 +42,6 @@ interface PlayerDao {
 
     @Transaction
     @Query("SELECT * FROM players WHERE isHuman = 1 LIMIT 1")
-    fun getFirstHumanPlayerWithState(): Flow<PlayerWithState>
+    suspend fun getFirstHumanPlayerWithState(): PlayerWithState
 
-    @Transaction
-    @Query("SELECT * FROM players WHERE id = :playerId")
-    fun getPlayerWithState(playerId: Long): Flow<PlayerWithState>
 }

@@ -36,11 +36,14 @@ class GameViewModel(
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
 
+    private val _currentPlayerState = MutableStateFlow<PlayerState?>(null)
+    val currentPlayerState: StateFlow<PlayerState?> = _currentPlayerState.asStateFlow()
+
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
-    val activeGameSession: StateFlow<GameSession?> = _activeGameSession
+    val activeGameSession: StateFlow<GameSession?> = _activeGameSession.asStateFlow()
 
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState
+    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState.asStateFlow()
 
     private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
@@ -54,6 +57,18 @@ class GameViewModel(
 
     fun onPlayerIsHumanChanged(isHuman: Boolean) {
         isHumanState = isHuman
+    }
+
+    fun onCurrentTurnChanged(currentTurn: Long) {
+        _currentTurn.longValue = currentTurn
+    }
+
+    fun onCurrentPlayerChanged(player: Player) {
+        _currentPlayer.value = player
+    }
+
+    fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
+        _humanPlayerWithState.value = playerWithState
     }
 
     lateinit var getAllPlayers: Flow<List<Player>>
@@ -76,16 +91,14 @@ class GameViewModel(
         }
     }
 
-    //players
-    private suspend fun insertDefaultPlayers() {
-        val defaultPlayers = listOf(
-            Player(name = "MB", isHuman = true), Player(name = "Bot 1"), Player(name = "Bot 2")
-        )
-        defaultPlayers.forEach { player ->
-            playerRepository.addPlayer(player)
-        }
+
+    //FLOW FUNCTIONS
+    fun getAPlayerById(id: Long): Flow<Player> {
+        return playerRepository.getPlayerById(id)
     }
 
+    //VIEW MODEL SCOPE FUNCTIONS
+    //players
     fun addPlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
             playerRepository.addPlayer(player = player)
@@ -98,23 +111,6 @@ class GameViewModel(
         }
     }
 
-    fun getAPlayerById(id: Long): Flow<Player> {
-        return playerRepository.getPlayerById(id)
-    }
-
-    private suspend fun loadCurrentGameState() {
-        viewModelScope.launch {
-            activeGameSession.collect { gameSession ->
-                if (gameSession != null) {
-                    _currentTurn.longValue = gameSession.turnOrder.first()
-                    _currentPlayer.value = playerRepository.getPlayerByIdSuspend(currentTurn.value)
-                    val humanPlayerWithState = playerRepository.getHumanPlayerWithState()
-                    onHumanPlayerWithStateChanged(humanPlayerWithState.first())
-                }
-            }
-        }
-    }
-
     fun deletePlayer(player: Player) {
         viewModelScope.launch(Dispatchers.IO) {
             playerRepository.deletePlayer(player = player)
@@ -122,17 +118,7 @@ class GameViewModel(
         }
     }
 
-    //game sessions
-    fun updateGameSession(gameSession: GameSession) {
-        viewModelScope.launch(Dispatchers.IO) {
-            gameSessionRepository.updateGameSession(game = gameSession)
-        }
-    }
-
-    suspend fun getGameSession(id: Long): GameSession {
-        return gameSessionRepository.getGameSession(id)
-    }
-
+    //Game sessions
     fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
             val turnOrder = playerIds.shuffled()
@@ -162,17 +148,47 @@ class GameViewModel(
         }
     }
 
+    //SUSPEND FUNCTIONS
+    //players
+    private suspend fun insertDefaultPlayers() {
+        val defaultPlayers = listOf(
+            Player(name = "MB", isHuman = true), Player(name = "Bot 1"), Player(name = "Bot 2")
+        )
+        defaultPlayers.forEach { player ->
+            playerRepository.addPlayer(player)
+        }
+    }
+
+    //game sessions
+    private suspend fun loadCurrentGameState() {
+        activeGameSession.collect { gameSession ->
+            if (gameSession != null) {
+                val currentTurnId = gameSession.turnOrder.first()
+                val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
+                val humanPlayerState = playerRepository.getHumanPlayerWithState()
+
+                onCurrentTurnChanged(currentTurnId)
+                onCurrentPlayerChanged(currentPlayer)
+                onHumanPlayerWithStateChanged(humanPlayerState)
+                loadHumanPlayerState()
+            }
+        }
+    }
+
     //player state
-    fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
-       viewModelScope.launch {
-           _humanPlayerWithState.value = playerWithState
-       }
+    private suspend fun loadPlayerState(playerId: Long) {
+        val playerState = playerStateRepository.getPlayerState(playerId)
+        _currentPlayerState.value = playerState
     }
 
-    fun getHumanPlayerWithState(): Flow<PlayerWithState> {
-        return playerRepository.getHumanPlayerWithState()
+    private suspend fun loadHumanPlayerState() {
+        val humanPlayerWithState = playerRepository.getHumanPlayerWithState()
+        _humanPlayerWithState.value = humanPlayerWithState
+        loadPlayerState(humanPlayerWithState.player.id)
     }
 
+
+    //UTILITY FUNCTIONS
     private fun getNumberOfTokensToWin(playerCount: Int): Int {
         return when (playerCount) {
             2 -> 6

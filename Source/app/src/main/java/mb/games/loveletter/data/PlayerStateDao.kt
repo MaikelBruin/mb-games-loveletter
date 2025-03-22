@@ -21,7 +21,7 @@ interface PlayerStateDao {
     suspend fun getActivePlayers(gameSessionId: Long): List<PlayerState>
 
     @Query("SELECT * FROM player_states WHERE playerId = :playerId")
-    fun getPlayerState(playerId: Long): Flow<PlayerState>
+    suspend fun getPlayerState(playerId: Long): PlayerState
 
     @Query("UPDATE player_states SET hand = :hand WHERE playerId = :playerId")
     suspend fun updateHand(playerId: Long, hand: List<Int>)

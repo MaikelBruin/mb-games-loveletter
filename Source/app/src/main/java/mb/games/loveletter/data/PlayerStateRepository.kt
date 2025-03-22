@@ -12,7 +12,7 @@ class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
         playerStateDao.updateHand(playerId, hand)
     }
 
-    fun getPlayerState(playerId: Long): Flow<PlayerState> {
+    suspend fun getPlayerState(playerId: Long): PlayerState {
         return playerStateDao.getPlayerState(playerId)
     }
 }

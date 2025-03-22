@@ -26,7 +26,7 @@ class PlayerRepository(private val playerDao: PlayerDao) {
         playerDao.deletePlayer(player)
     }
 
-    fun getHumanPlayerWithState(): Flow<PlayerWithState> {
+    suspend fun getHumanPlayerWithState(): PlayerWithState {
         return playerDao.getFirstHumanPlayerWithState()
     }
 
