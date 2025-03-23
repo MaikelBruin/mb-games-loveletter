@@ -153,16 +153,45 @@ class GameViewModel(
     fun onPlayCard(cardType: CardType, targetPlayer: PlayerWithState? = null) {
         viewModelScope.launch {
             when (cardType) {
-                CardType.Spy -> println("Playing card: spy...")
-                CardType.Guard -> println("Playing card: guard...")
-                CardType.Priest -> println("Playing card: priest...")
-                CardType.Baron -> println("Playing card: baron...")
-                CardType.Handmaid -> println("Playing card: handmaid...")
-                CardType.Prince -> println("Playing card: prince...")
-                CardType.Chancellor -> println("Playing card: chancellor...")
-                CardType.King -> println("Playing card: king...")
-                CardType.Countess -> println("Playing card: countess...")
-                CardType.Princess -> println("Playing card: princess...")
+                CardType.Spy -> {
+                    println("Playing card: spy...")
+                }
+
+                CardType.Guard -> {
+                    println("Playing card: guard...")
+                }
+
+                CardType.Priest -> {
+                    println("Playing card: priest...")
+                }
+
+                CardType.Baron -> {
+                    println("Playing card: baron...")
+                }
+
+                CardType.Handmaid -> {
+                    println("Playing card: handmaid...")
+                }
+
+                CardType.Prince -> {
+                    println("Playing card: prince...")
+                }
+
+                CardType.Chancellor -> {
+                    println("Playing card: chancellor...")
+                }
+
+                CardType.King -> {
+                    println("Playing card: king...")
+                }
+
+                CardType.Countess -> {
+                    println("Playing card: countess...")
+                }
+
+                CardType.Princess -> {
+                    println("Playing card: princess...")
+                }
             }
 
             onEndTurn()
@@ -193,8 +222,7 @@ class GameViewModel(
         viewModelScope.launch {
             println("Ending turn for player '${_currentPlayer.value?.name}'...")
             val activeGameSession = _activeGameSession.value!!
-            val currentTurnIndex =
-                activeGameSession.turnOrder.indexOf(_currentTurn.longValue)
+            val currentTurnIndex = activeGameSession.turnOrder.indexOf(_currentTurn.longValue)
             val nextTurnIndex = currentTurnIndex + 1
             val nextPlayerId: Long = try {
                 activeGameSession.turnOrder[nextTurnIndex]
