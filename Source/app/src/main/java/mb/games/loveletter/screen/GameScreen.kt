@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import mb.games.loveletter.data.Cards
-import mb.games.loveletter.data.DummyPlayerWithState
 import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.viewmodel.GameViewModel
 
@@ -33,6 +32,7 @@ fun GameView(
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
     val currentPlayer by viewModel.currentPlayer
+    val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerWithState by viewModel.humanPlayerWithState.collectAsState()
 
@@ -50,6 +50,8 @@ fun GameView(
             //top left, should display logs for player and bot turns
             val playersInGame = players.value
             val playerNames = playersInGame.map { player -> player.name }
+            val playerIds = playersInGame.map { player -> player.id }
+            val turnOrder = activeGameSession?.turnOrder
             Row(
                 modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
@@ -59,6 +61,16 @@ fun GameView(
                     Row {
                         Text(
                             text = "player names: $playerNames"
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "player ids: $playerIds"
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "turn order: $turnOrder"
                         )
                     }
                     Row {
@@ -86,7 +98,8 @@ fun GameView(
 
                     LazyRow {
                         items(cardsInHand) { card ->
-                            CardItemView(card = card)
+                            CardItemView(card = card,
+                                onClick = { viewModel.onPlayCard(card.cardType) })
                         }
                     }
                 }

@@ -50,7 +50,7 @@ sealed class Cards(val id: Int, val cardType: CardType) {
             )
         }
 
-        private fun fromId(id: Int): Cards {
+        fun fromId(id: Int): Cards {
             val firstOrNull = allCards.firstOrNull { cards -> cards.id == id }
             if (firstOrNull == null) {
                 println("Could not find card with id '${id}'")

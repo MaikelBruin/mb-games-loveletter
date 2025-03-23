@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.CardType
+import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Deck
 import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
@@ -130,6 +131,7 @@ class GameViewModel(
                 onEndRound()
             } else {
                 _currentPlayerWithState.value.let { currentPlayerWithState ->
+                    println("Starting turn for '${_currentPlayer.value?.name}'...")
                     val updatedState = currentPlayerWithState!!.copy()
                     updatedState.playerState.hand.add(card.id)
                     onCurrentPlayerWithStateChanged(updatedState)
@@ -137,9 +139,8 @@ class GameViewModel(
                         onHumanPlayerWithStateChanged(updatedState)
                         println("Play a card")
                     } else {
-                        println("Computer should play a card")
+                        onPlayCard(Cards.fromId(updatedState.playerState.hand.random()).cardType)
                     }
-                    println("Number of cards in my hand: '${humanPlayerWithState.value!!.playerState.hand.size}'")
                 }
 
             }
@@ -149,20 +150,22 @@ class GameViewModel(
     /**
      * Should always be the current player
      */
-    private fun onPlayCard(cardType: CardType, targetPlayer: PlayerWithState? = null) {
+    fun onPlayCard(cardType: CardType, targetPlayer: PlayerWithState? = null) {
         viewModelScope.launch {
             when (cardType) {
-                CardType.Spy -> TODO()
-                CardType.Guard -> TODO()
-                CardType.Priest -> TODO()
-                CardType.Baron -> TODO()
-                CardType.Handmaid -> TODO()
-                CardType.Prince -> TODO()
-                CardType.Chancellor -> TODO()
-                CardType.King -> TODO()
-                CardType.Countess -> TODO()
-                CardType.Princess -> TODO()
+                CardType.Spy -> println("Playing card: spy...")
+                CardType.Guard -> println("Playing card: guard...")
+                CardType.Priest -> println("Playing card: priest...")
+                CardType.Baron -> println("Playing card: baron...")
+                CardType.Handmaid -> println("Playing card: handmaid...")
+                CardType.Prince -> println("Playing card: prince...")
+                CardType.Chancellor -> println("Playing card: chancellor...")
+                CardType.King -> println("Playing card: king...")
+                CardType.Countess -> println("Playing card: countess...")
+                CardType.Princess -> println("Playing card: princess...")
             }
+
+            onEndTurn()
         }
     }
 
@@ -183,6 +186,28 @@ class GameViewModel(
                 CardType.Countess -> TODO()
                 CardType.Princess -> TODO()
             }
+        }
+    }
+
+    private fun onEndTurn() {
+        viewModelScope.launch {
+            println("Ending turn for player '${_currentPlayer.value?.name}'...")
+            val activeGameSession = _activeGameSession.value!!
+            val currentTurnIndex =
+                activeGameSession.turnOrder.indexOf(_currentTurn.longValue)
+            val nextTurnIndex = currentTurnIndex + 1
+            val nextPlayerId: Long = try {
+                activeGameSession.turnOrder[nextTurnIndex]
+            } catch (e: IndexOutOfBoundsException) {
+                activeGameSession.turnOrder[0]
+            }
+
+            val nextPlayer = playerRepository.getPlayerByIdSuspend(nextPlayerId)
+            val nextPlayerWithState = playerRepository.getPlayerWithState(nextPlayerId)
+            onCurrentTurnChanged(nextPlayerId)
+            onCurrentPlayerChanged(nextPlayer)
+            onCurrentPlayerWithStateChanged(nextPlayerWithState)
+            onStartTurn()
         }
     }
 
