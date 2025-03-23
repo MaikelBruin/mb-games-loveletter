@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
+import mb.games.loveletter.data.CardType
 import mb.games.loveletter.data.Deck
 import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
@@ -122,7 +123,7 @@ class GameViewModel(
     }
 
     //player with state
-    fun onStartTurn() {
+    private fun onStartTurn() {
         viewModelScope.launch {
             val card = _deck.value.drawCard()
             if (card == null) {
@@ -141,6 +142,46 @@ class GameViewModel(
                     println("Number of cards in my hand: '${humanPlayerWithState.value!!.playerState.hand.size}'")
                 }
 
+            }
+        }
+    }
+
+    /**
+     * Should always be the current player
+     */
+    private fun onPlayCard(cardType: CardType, targetPlayer: PlayerWithState? = null) {
+        viewModelScope.launch {
+            when (cardType) {
+                CardType.Spy -> TODO()
+                CardType.Guard -> TODO()
+                CardType.Priest -> TODO()
+                CardType.Baron -> TODO()
+                CardType.Handmaid -> TODO()
+                CardType.Prince -> TODO()
+                CardType.Chancellor -> TODO()
+                CardType.King -> TODO()
+                CardType.Countess -> TODO()
+                CardType.Princess -> TODO()
+            }
+        }
+    }
+
+    /**
+     * Can be any player
+     */
+    private fun onDiscardCard(executingPlayer: PlayerWithState, cardType: CardType) {
+        viewModelScope.launch {
+            when (cardType) {
+                CardType.Spy -> TODO()
+                CardType.Guard -> TODO()
+                CardType.Priest -> TODO()
+                CardType.Baron -> TODO()
+                CardType.Handmaid -> TODO()
+                CardType.Prince -> TODO()
+                CardType.Chancellor -> TODO()
+                CardType.King -> TODO()
+                CardType.Countess -> TODO()
+                CardType.Princess -> TODO()
             }
         }
     }
