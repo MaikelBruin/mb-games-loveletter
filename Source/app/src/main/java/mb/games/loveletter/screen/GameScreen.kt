@@ -51,7 +51,8 @@ fun GameView(
             val playersInGame = players.value
             val playerNames = playersInGame.map { player -> player.name }
             val playerIds = playersInGame.map { player -> player.id }
-            val turnOrder = activeGameSession?.turnOrder
+            val turnOrder =
+                activeGameSession?.turnOrder?.map { turn -> playersInGame.find { player -> player.id == turn }?.name }
             Row(
                 modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
@@ -98,7 +99,8 @@ fun GameView(
 
                     LazyRow {
                         items(cardsInHand) { card ->
-                            CardItemView(card = card,
+                            CardItemView(
+                                card = card,
                                 onClick = { viewModel.onPlayCard(card.cardType) })
                         }
                     }
