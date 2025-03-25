@@ -5,7 +5,7 @@ import androidx.room.Room
 import mb.games.loveletter.data.GameDatabase
 import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
-import mb.games.loveletter.data.PlayerStateRepository
+import mb.games.loveletter.data.PlayerGameStateRepository
 
 object Graph {
     private lateinit var database: GameDatabase
@@ -15,7 +15,7 @@ object Graph {
     }
 
     val playerStateRepository by lazy {
-        PlayerStateRepository(playerStateDao = database.playerStateDao())
+        PlayerGameStateRepository(playerStateDao = database.playerStateDao())
     }
 
     val gameSessionRepository by lazy {

@@ -7,7 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 
 @Dao
-interface PlayerStateDao {
+interface PlayerGameStateDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlayerState(playerState: PlayerGameState)

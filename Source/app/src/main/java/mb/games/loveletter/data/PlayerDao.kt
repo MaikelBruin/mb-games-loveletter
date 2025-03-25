@@ -32,21 +32,21 @@ interface PlayerDao {
 
     @Transaction
     @Query("SELECT * FROM players WHERE gameSessionId =:gameSessionId LIMIT 1")
-    fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Flow<PlayerWithState>
+    fun getFirstHumanPlayerForGameSession(gameSessionId: Long): Flow<PlayerWithGameState>
 
     @Transaction
     @Query("SELECT * FROM players WHERE isHuman = 1 LIMIT 1")
-    suspend fun getFirstHumanPlayerWithState(): PlayerWithState
+    suspend fun getFirstHumanPlayerWithState(): PlayerWithGameState
 
     @Transaction
     @Query("SELECT * FROM players WHERE id =:playerId")
-    suspend fun getPlayerWithState(playerId: Long): PlayerWithState
+    suspend fun getPlayerWithState(playerId: Long): PlayerWithGameState
 
     @Transaction
     @Query("""
         SELECT * FROM players 
         WHERE gameSessionId = :gameSessionId
     """)
-    fun getActivePlayersWithState(gameSessionId: Long): Flow<List<PlayerWithState>>
+    fun getActivePlayersWithState(gameSessionId: Long): Flow<List<PlayerWithGameState>>
 
 }

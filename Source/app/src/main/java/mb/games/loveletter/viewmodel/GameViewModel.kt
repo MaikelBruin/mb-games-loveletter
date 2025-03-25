@@ -28,12 +28,12 @@ import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.PlayerRoundState
 import mb.games.loveletter.data.PlayerGameState
-import mb.games.loveletter.data.PlayerStateRepository
-import mb.games.loveletter.data.PlayerWithState
+import mb.games.loveletter.data.PlayerGameStateRepository
+import mb.games.loveletter.data.PlayerWithGameState
 
 class GameViewModel(
     private val playerRepository: PlayerRepository = Graph.playerRepository,
-    private val playerStateRepository: PlayerStateRepository = Graph.playerStateRepository,
+    private val playerStateRepository: PlayerGameStateRepository = Graph.playerStateRepository,
     private val gameSessionRepository: GameSessionRepository = Graph.gameSessionRepository
 ) : ViewModel() {
 
@@ -50,8 +50,8 @@ class GameViewModel(
     val deck: StateFlow<Deck> = _deck.asStateFlow()
 
     //all players
-    private val _playersWithState = MutableStateFlow<List<PlayerWithState>>(emptyList())
-    val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
+    private val _playersWithState = MutableStateFlow<List<PlayerWithGameState>>(emptyList())
+    val playersWithState: StateFlow<List<PlayerWithGameState>> = _playersWithState.asStateFlow()
 
     private val _playerRoundStates = MutableStateFlow<Map<Long, PlayerRoundState>>(emptyMap())
     private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> =
@@ -61,12 +61,12 @@ class GameViewModel(
     private val _currentTurn = mutableLongStateOf(0)
     private val currentTurn: State<Long> = _currentTurn
 
-    private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val currentPlayerWithState: StateFlow<PlayerWithState?> = _currentPlayerWithState.asStateFlow()
+    private val _currentPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
+    val currentPlayerWithState: StateFlow<PlayerWithGameState?> = _currentPlayerWithState.asStateFlow()
 
     //human player
-    private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState.asStateFlow()
+    private val _humanPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
+    val humanPlayerWithState: StateFlow<PlayerWithGameState?> = _humanPlayerWithState.asStateFlow()
 
     val humanPlayerRoundState: StateFlow<PlayerRoundState?> =
         combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
@@ -85,11 +85,11 @@ class GameViewModel(
         _currentTurn.longValue = currentTurn
     }
 
-    private fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
+    private fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithGameState) {
         _humanPlayerWithState.value = playerWithState
     }
 
-    private fun onCurrentPlayerWithStateChanged(playerWithState: PlayerWithState) {
+    private fun onCurrentPlayerWithStateChanged(playerWithState: PlayerWithGameState) {
         _currentPlayerWithState.value = playerWithState
     }
 
@@ -179,7 +179,7 @@ class GameViewModel(
     /**
      * Should always be the current player
      */
-    fun onPlayCard(card: Cards, targetPlayer: PlayerWithState? = null) {
+    fun onPlayCard(card: Cards, targetPlayer: PlayerWithGameState? = null) {
         viewModelScope.launch {
             when (card.cardType) {
                 CardType.Spy -> {
@@ -233,7 +233,7 @@ class GameViewModel(
     /**
      * Can be any player
      */
-    private fun onDiscardCard(card: Cards, executingPlayer: PlayerWithState) {
+    private fun onDiscardCard(card: Cards, executingPlayer: PlayerWithGameState) {
         viewModelScope.launch {
             when (card.cardType) {
                 CardType.Spy -> {

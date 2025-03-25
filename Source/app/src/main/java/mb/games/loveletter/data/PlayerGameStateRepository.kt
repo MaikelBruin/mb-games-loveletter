@@ -1,6 +1,6 @@
 package mb.games.loveletter.data
 
-class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
+class PlayerGameStateRepository(private val playerStateDao: PlayerGameStateDao) {
 
     suspend fun insertPlayerState(playerState: PlayerGameState) {
         playerStateDao.insertPlayerState(playerState)
