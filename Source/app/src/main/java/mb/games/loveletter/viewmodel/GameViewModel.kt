@@ -157,7 +157,7 @@ class GameViewModel(
 
         val hands = deck.value.deal(playerIds)
         for ((playerId, card) in hands) {
-            dealCardToPlayer(playerId, card.id)
+            onDealCardToPlayer(playerId, card.id)
         }
     }
 
@@ -169,7 +169,7 @@ class GameViewModel(
             } else {
                 _currentPlayerWithState.value.let { currentPlayerWithState ->
                     println("Starting turn for '${_currentPlayer.value?.name}'...")
-                    dealCardToPlayer(currentPlayerWithState!!.player.id, card.id)
+                    onDealCardToPlayer(currentPlayerWithState!!.player.id, card.id)
                     if (currentPlayerWithState.player.isHuman) {
                         println("Play a card")
                     } else {
@@ -280,10 +280,15 @@ class GameViewModel(
                 }
             }
 
-            //TODO: remove card from hand
-//            val updatedState = executingPlayer.copy()
-//            updatedState.playerState.hand.indexOf(find { id -> id == card.id }!!)
-//            onCurrentPlayerWithStateChanged(updatedState)
+            //update hand and discard pile
+            _playerRoundStates.update { states ->
+                states.mapValues { (id, state) ->
+                    if (id == executingPlayer.player.id) state.copy(
+                        hand = state.hand - card.id,
+                        discardPile = state.discardPile + card.id
+                    ) else state
+                }
+            }
 
         }
     }
@@ -318,7 +323,7 @@ class GameViewModel(
         return playerRoundStates.value[playerId]!!
     }
 
-    private fun dealCardToPlayer(playerId: Long, newCard: Int) {
+    private fun onDealCardToPlayer(playerId: Long, newCard: Int) {
         _playerRoundStates.update { states ->
             states.mapValues { (id, state) ->
                 if (id == playerId) state.copy(hand = state.hand + newCard) else state
