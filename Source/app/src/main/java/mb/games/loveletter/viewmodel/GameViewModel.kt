@@ -51,7 +51,7 @@ class GameViewModel(
 
     //all players
     private val _playersWithState = MutableStateFlow<List<PlayerWithState>>(emptyList())
-    private val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
+    val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
 
     private val _playerRoundStates = MutableStateFlow<Map<Long, PlayerRoundState>>(emptyMap())
     private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> =
@@ -386,6 +386,7 @@ class GameViewModel(
         val currentTurnId = activeGameSession.value!!.turnOrder.first()
         val currentPlayerWithState = playerRepository.getPlayerWithState(currentTurnId)
         val humanPlayerState = playerRepository.getHumanPlayerWithState()
+        loadActivePlayersWithState(activeGameSession.value!!.id)
 
         onCurrentTurnChanged(currentTurnId)
         onHumanPlayerWithStateChanged(humanPlayerState)
