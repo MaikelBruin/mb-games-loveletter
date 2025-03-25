@@ -16,10 +16,6 @@ class PlayerRepository(private val playerDao: PlayerDao) {
         return playerDao.getPlayerById(id)
     }
 
-    suspend fun getPlayerByIdSuspend(id: Long): Player {
-        return playerDao.getPlayerByIdSuspend(id)
-    }
-
     suspend fun updatePlayer(player: Player) {
         playerDao.updatePlayer(player)
     }

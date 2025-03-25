@@ -16,12 +16,6 @@ class Deck(private val cards: MutableList<Cards>) {
         return hands
     }
 
-    fun shuffleDeck() {
-        cards.shuffle()
-    }
-
-    fun isEmpty(): Boolean = cards.isEmpty()
-
     companion object {
         fun createNewDeck(): Deck {
             val allCards: MutableList<Cards> = mutableListOf()

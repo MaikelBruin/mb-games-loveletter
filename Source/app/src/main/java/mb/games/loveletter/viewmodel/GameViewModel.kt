@@ -38,26 +38,18 @@ class GameViewModel(
 ) : ViewModel() {
 
     //STATES
-    private val _currentTurn = mutableLongStateOf(0)
-    private val currentTurn: State<Long> = _currentTurn
-
+    //new game screen
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
 
-    //STATE FLOWS
-    private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val currentPlayerWithState: StateFlow<PlayerWithState?> =
-        _currentPlayerWithState.asStateFlow()
-
+    //game screen
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
     val activeGameSession: StateFlow<GameSession?> = _activeGameSession.asStateFlow()
-
-    private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState.asStateFlow()
 
     private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
 
+    //all players
     private val _playersWithState = MutableStateFlow<List<PlayerWithState>>(emptyList())
     private val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
 
@@ -65,7 +57,17 @@ class GameViewModel(
     private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> =
         _playerRoundStates.asStateFlow()
 
-    // Derived StateFlow for the human player's state
+    //current turn / player
+    private val _currentTurn = mutableLongStateOf(0)
+    private val currentTurn: State<Long> = _currentTurn
+
+    private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
+    val currentPlayerWithState: StateFlow<PlayerWithState?> = _currentPlayerWithState.asStateFlow()
+
+    //human player
+    private val _humanPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
+    val humanPlayerWithState: StateFlow<PlayerWithState?> = _humanPlayerWithState.asStateFlow()
+
     val humanPlayerRoundState: StateFlow<PlayerRoundState?> =
         combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
             humanPlayerWithState?.let { states[it.player.id] }  // Get human player's state if the ID exists
