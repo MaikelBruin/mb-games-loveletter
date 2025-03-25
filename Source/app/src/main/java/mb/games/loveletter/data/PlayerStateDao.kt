@@ -17,18 +17,10 @@ interface PlayerStateDao {
     @Update
     suspend fun updatePlayerState(playerState: PlayerState)
 
-    @Query("UPDATE player_states SET isAlive = 0 WHERE gameSessionId = :gameSessionId AND playerId = :playerId")
-    suspend fun eliminatePlayer(gameSessionId: Long, playerId: Long)
-
-    @Query("SELECT * FROM player_states WHERE gameSessionId = :gameSessionId AND isAlive = 1")
+    @Query("SELECT * FROM player_states WHERE gameSessionId = :gameSessionId")
     suspend fun getActivePlayers(gameSessionId: Long): List<PlayerState>
 
     @Query("SELECT * FROM player_states WHERE playerId = :playerId")
     suspend fun getPlayerState(playerId: Long): PlayerState
-
-    @Query("UPDATE player_states SET hand = :hand WHERE playerId = :playerId")
-    suspend fun updateHand(playerId: Long, hand: List<Int>)
-
-
 
 }

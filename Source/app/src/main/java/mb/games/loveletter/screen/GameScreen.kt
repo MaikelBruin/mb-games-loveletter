@@ -34,7 +34,7 @@ fun GameView(
     val currentPlayer by viewModel.currentPlayer
     val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
-    val humanPlayerWithState by viewModel.humanPlayerWithState.collectAsState()
+    val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
 
     Row(
         modifier = Modifier
@@ -88,8 +88,8 @@ fun GameView(
 
                 Column {
                     var cardsInHand = emptyList<Cards>()
-                    if (humanPlayerWithState != null) {
-                        val hand = humanPlayerWithState!!.playerState.hand
+                    if (humanPlayerRoundState != null) {
+                        val hand = humanPlayerRoundState!!.hand
                         cardsInHand = Cards.fromIds(hand)
                     }
                     Row {

@@ -10,9 +10,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.CardType
@@ -22,6 +26,7 @@ import mb.games.loveletter.data.GameSession
 import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.data.PlayerRoundState
 import mb.games.loveletter.data.PlayerState
 import mb.games.loveletter.data.PlayerStateRepository
 import mb.games.loveletter.data.PlayerWithState
@@ -34,7 +39,7 @@ class GameViewModel(
 
     //STATES
     private val _currentTurn = mutableLongStateOf(0)
-    val currentTurn: State<Long> = _currentTurn
+    private val currentTurn: State<Long> = _currentTurn
 
     private val _currentPlayer = mutableStateOf<Player?>(null)
     val currentPlayer: State<Player?> = _currentPlayer
@@ -44,7 +49,8 @@ class GameViewModel(
 
     //STATE FLOWS
     private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    val currentPlayerWithState: StateFlow<PlayerWithState?> = _currentPlayerWithState.asStateFlow()
+    private val currentPlayerWithState: StateFlow<PlayerWithState?> =
+        _currentPlayerWithState.asStateFlow()
 
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
     val activeGameSession: StateFlow<GameSession?> = _activeGameSession.asStateFlow()
@@ -56,7 +62,16 @@ class GameViewModel(
     val deck: StateFlow<Deck> = _deck.asStateFlow()
 
     private val _playersWithState = MutableStateFlow<List<PlayerWithState>>(emptyList())
-    val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
+    private val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
+
+    private val _playerRoundStates = MutableStateFlow<Map<Long, PlayerRoundState>>(emptyMap())
+    private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> = _playerRoundStates.asStateFlow()
+
+    // Derived StateFlow for the human player's state
+    val humanPlayerRoundState: StateFlow<PlayerRoundState?> =
+        combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
+            humanPlayerWithState?.let { states[it.player.id] }  // Get human player's state if the ID exists
+        }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     fun onPlayerNameChanged(newName: String) {
         playerNameState = newName
@@ -66,19 +81,19 @@ class GameViewModel(
         isHumanState = isHuman
     }
 
-    fun onCurrentTurnChanged(currentTurn: Long) {
+    private fun onCurrentTurnChanged(currentTurn: Long) {
         _currentTurn.longValue = currentTurn
     }
 
-    fun onCurrentPlayerChanged(player: Player) {
+    private fun onCurrentPlayerChanged(player: Player) {
         _currentPlayer.value = player
     }
 
-    fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
+    private fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
         _humanPlayerWithState.value = playerWithState
     }
 
-    fun onCurrentPlayerWithStateChanged(playerWithState: PlayerWithState) {
+    private fun onCurrentPlayerWithStateChanged(playerWithState: PlayerWithState) {
         _currentPlayerWithState.value = playerWithState
     }
 
@@ -127,10 +142,22 @@ class GameViewModel(
     }
 
     //player with state
-    fun loadActivePlayersWithState(gameSessionId: Long) {
+    private fun loadActivePlayersWithState(gameSessionId: Long) {
         viewModelScope.launch {
             playerRepository.getActivePlayersWithState(gameSessionId)
                 .collect { _playersWithState.value = it }
+        }
+    }
+
+    private fun onStartNewRound(playerIds: List<Long>) {
+        println("Starting new round...")
+        _playerRoundStates.value = playerIds.associateWith {
+            PlayerRoundState()
+        }
+
+        val hands = deck.value.deal(playerIds)
+        for ((playerId, card) in hands) {
+            dealCardToPlayer(playerId, card.id)
         }
     }
 
@@ -142,14 +169,11 @@ class GameViewModel(
             } else {
                 _currentPlayerWithState.value.let { currentPlayerWithState ->
                     println("Starting turn for '${_currentPlayer.value?.name}'...")
-                    val updatedState = currentPlayerWithState!!.copy()
-                    updatedState.playerState.hand.add(card.id)
-                    onCurrentPlayerWithStateChanged(updatedState)
+                    dealCardToPlayer(currentPlayerWithState!!.player.id, card.id)
                     if (currentPlayerWithState.player.isHuman) {
-                        onHumanPlayerWithStateChanged(updatedState)
                         println("Play a card")
                     } else {
-                        onPlayCard(Cards.fromId(updatedState.playerState.hand.random()))
+                        onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
                     }
                 }
             }
@@ -268,7 +292,7 @@ class GameViewModel(
         viewModelScope.launch {
             println("Ending turn for player '${_currentPlayer.value?.name}'...")
             val activeGameSession = _activeGameSession.value!!
-            val currentTurnIndex = activeGameSession.turnOrder.indexOf(_currentTurn.longValue)
+            val currentTurnIndex = activeGameSession.turnOrder.indexOf(currentTurn.value)
             val nextTurnIndex = currentTurnIndex + 1
             val nextPlayerId: Long = try {
                 activeGameSession.turnOrder[nextTurnIndex]
@@ -289,6 +313,19 @@ class GameViewModel(
         println("Round ended!")
     }
 
+    //player round states
+    fun getPlayerRoundState(playerId: Long): PlayerRoundState {
+        return playerRoundStates.value[playerId]!!
+    }
+
+    private fun dealCardToPlayer(playerId: Long, newCard: Int) {
+        _playerRoundStates.update { states ->
+            states.mapValues { (id, state) ->
+                if (id == playerId) state.copy(hand = state.hand + newCard) else state
+            }
+        }
+    }
+
     //Game sessions
     fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -301,7 +338,8 @@ class GameViewModel(
                 isActive = true
             )
 
-            // Create empty player states
+            // Create player states in db
+            // and create player round states in memory
             playerIds.forEach { playerId ->
                 val playerState = PlayerState(
                     gameSessionId = gameSession.id, playerId = playerId
@@ -309,15 +347,13 @@ class GameViewModel(
                 playerStateRepository.insertPlayerState(playerState)
             }
 
-            val hands = deck.value.deal(playerIds)
-            for ((playerId, card) in hands) {
-                playerStateRepository.updatePlayerHand(playerId, listOf(card.id))
-            }
-
             //update state
             _activeGameSession.value = gameSession
             loadCurrentGameState()
             loadActivePlayersWithState(gameSession.id)
+
+            //start round
+            onStartNewRound(playerIds)
         }
     }
 

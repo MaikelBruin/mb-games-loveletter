@@ -6,10 +6,6 @@ class PlayerStateRepository(private val playerStateDao: PlayerStateDao) {
         playerStateDao.insertPlayerState(playerState)
     }
 
-    suspend fun updatePlayerHand(playerId: Long, hand: List<Int>) {
-        playerStateDao.updateHand(playerId, hand)
-    }
-
     suspend fun updatePlayerState(playerState: PlayerState) {
         playerStateDao.updatePlayerState(playerState)
     }
