@@ -41,8 +41,8 @@ class GameViewModel(
     private val _currentTurn = mutableLongStateOf(0)
     private val currentTurn: State<Long> = _currentTurn
 
-    private val _currentPlayer = mutableStateOf<Player?>(null)
-    val currentPlayer: State<Player?> = _currentPlayer
+    private val _currentPlayerPlayer = mutableStateOf<Player?>(null)
+    val currentPlayerPlayer: State<Player?> = _currentPlayerPlayer
 
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
@@ -65,7 +65,8 @@ class GameViewModel(
     private val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
 
     private val _playerRoundStates = MutableStateFlow<Map<Long, PlayerRoundState>>(emptyMap())
-    private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> = _playerRoundStates.asStateFlow()
+    private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> =
+        _playerRoundStates.asStateFlow()
 
     // Derived StateFlow for the human player's state
     val humanPlayerRoundState: StateFlow<PlayerRoundState?> =
@@ -86,7 +87,7 @@ class GameViewModel(
     }
 
     private fun onCurrentPlayerChanged(player: Player) {
-        _currentPlayer.value = player
+        _currentPlayerPlayer.value = player
     }
 
     private fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
@@ -168,7 +169,7 @@ class GameViewModel(
                 onEndRound()
             } else {
                 _currentPlayerWithState.value.let { currentPlayerWithState ->
-                    println("Starting turn for '${_currentPlayer.value?.name}'...")
+                    println("Starting turn for '${currentPlayerPlayer.value?.name}'...")
                     onDealCardToPlayer(currentPlayerWithState!!.player.id, card.id)
                     if (currentPlayerWithState.player.isHuman) {
                         println("Play a card")
@@ -224,6 +225,7 @@ class GameViewModel(
 
                 CardType.Princess -> {
                     println("Playing card: princess...")
+                    eliminatePlayer(currentTurn.value)
                 }
             }
 
@@ -277,6 +279,7 @@ class GameViewModel(
 
                 CardType.Princess -> {
                     println("Discarding card: princess...")
+                    eliminatePlayer(executingPlayer.player.id)
                 }
             }
 
@@ -284,8 +287,7 @@ class GameViewModel(
             _playerRoundStates.update { states ->
                 states.mapValues { (id, state) ->
                     if (id == executingPlayer.player.id) state.copy(
-                        hand = state.hand - card.id,
-                        discardPile = state.discardPile + card.id
+                        hand = state.hand - card.id, discardPile = state.discardPile + card.id
                     ) else state
                 }
             }
@@ -293,17 +295,18 @@ class GameViewModel(
         }
     }
 
+    private fun eliminatePlayer(playerId: Long) {
+        _playerRoundStates.update { states ->
+            states.mapValues { (id, state) ->
+                if (id == playerId) state.copy(isAlive = false) else state
+            }
+        }
+    }
+
     private fun onEndTurn() {
         viewModelScope.launch {
-            println("Ending turn for player '${_currentPlayer.value?.name}'...")
-            val activeGameSession = _activeGameSession.value!!
-            val currentTurnIndex = activeGameSession.turnOrder.indexOf(currentTurn.value)
-            val nextTurnIndex = currentTurnIndex + 1
-            val nextPlayerId: Long = try {
-                activeGameSession.turnOrder[nextTurnIndex]
-            } catch (e: IndexOutOfBoundsException) {
-                activeGameSession.turnOrder[0]
-            }
+            println("Ending turn for player '${currentPlayerPlayer.value?.name}'...")
+            val nextPlayerId: Long = getNextPlayerId()
 
             val nextPlayer = playerRepository.getPlayerByIdSuspend(nextPlayerId)
             val nextPlayerWithState = playerRepository.getPlayerWithState(nextPlayerId)
@@ -312,6 +315,18 @@ class GameViewModel(
             onCurrentPlayerWithStateChanged(nextPlayerWithState)
             onStartTurn()
         }
+    }
+
+    private fun getNextPlayerId(): Long {
+        val activeGameSession = activeGameSession.value!!
+        val currentTurnIndex = activeGameSession.turnOrder.indexOf(currentTurn.value)
+        val nextTurnIndex = currentTurnIndex + 1
+        val nextPlayerId: Long = try {
+            activeGameSession.turnOrder[nextTurnIndex]
+        } catch (e: IndexOutOfBoundsException) {
+            activeGameSession.turnOrder[0]
+        }
+        return nextPlayerId
     }
 
     private fun onEndRound() {

@@ -31,7 +31,7 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val currentPlayer by viewModel.currentPlayer
+    val currentPlayer by viewModel.currentPlayerPlayer
     val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
