@@ -42,4 +42,11 @@ interface PlayerDao {
     @Query("SELECT * FROM players WHERE id =:playerId")
     suspend fun getPlayerWithState(playerId: Long): PlayerWithState
 
+    @Transaction
+    @Query("""
+        SELECT * FROM players 
+        WHERE gameSessionId = :gameSessionId
+    """)
+    fun getActivePlayersWithState(gameSessionId: Long): Flow<List<PlayerWithState>>
+
 }

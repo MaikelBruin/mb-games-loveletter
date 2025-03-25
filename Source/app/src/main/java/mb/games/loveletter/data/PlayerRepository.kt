@@ -10,6 +10,8 @@ class PlayerRepository(private val playerDao: PlayerDao) {
 
     fun getPlayers(): Flow<List<Player>> = playerDao.getAllPlayers()
 
+    fun getActivePlayersWithState(gameSessionId: Long): Flow<List<PlayerWithState>> = playerDao.getActivePlayersWithState(gameSessionId)
+
     fun getPlayerById(id: Long): Flow<Player> {
         return playerDao.getPlayerById(id)
     }

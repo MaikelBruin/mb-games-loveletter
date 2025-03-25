@@ -101,7 +101,7 @@ fun GameView(
                         items(cardsInHand) { card ->
                             CardItemView(
                                 card = card,
-                                onClick = { viewModel.onPlayCard(card.cardType) })
+                                onClick = { viewModel.onPlayCard(card) })
                         }
                     }
                 }

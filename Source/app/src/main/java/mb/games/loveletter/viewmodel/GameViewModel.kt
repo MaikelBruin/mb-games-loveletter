@@ -55,6 +55,9 @@ class GameViewModel(
     private val _deck = MutableStateFlow(Deck.createNewDeck())
     val deck: StateFlow<Deck> = _deck.asStateFlow()
 
+    private val _playersWithState = MutableStateFlow<List<PlayerWithState>>(emptyList())
+    val playersWithState: StateFlow<List<PlayerWithState>> = _playersWithState.asStateFlow()
+
     fun onPlayerNameChanged(newName: String) {
         playerNameState = newName
     }
@@ -124,6 +127,13 @@ class GameViewModel(
     }
 
     //player with state
+    fun loadActivePlayersWithState(gameSessionId: Long) {
+        viewModelScope.launch {
+            playerRepository.getActivePlayersWithState(gameSessionId)
+                .collect { _playersWithState.value = it }
+        }
+    }
+
     private fun onStartTurn() {
         viewModelScope.launch {
             val card = _deck.value.drawCard()
@@ -139,10 +149,9 @@ class GameViewModel(
                         onHumanPlayerWithStateChanged(updatedState)
                         println("Play a card")
                     } else {
-                        onPlayCard(Cards.fromId(updatedState.playerState.hand.random()).cardType)
+                        onPlayCard(Cards.fromId(updatedState.playerState.hand.random()))
                     }
                 }
-
             }
         }
     }
@@ -150,9 +159,9 @@ class GameViewModel(
     /**
      * Should always be the current player
      */
-    fun onPlayCard(cardType: CardType, targetPlayer: PlayerWithState? = null) {
+    fun onPlayCard(card: Cards, targetPlayer: PlayerWithState? = null) {
         viewModelScope.launch {
-            when (cardType) {
+            when (card.cardType) {
                 CardType.Spy -> {
                     println("Playing card: spy...")
                 }
@@ -194,6 +203,8 @@ class GameViewModel(
                 }
             }
 
+            onDiscardCard(card, currentPlayerWithState.value!!)
+
             onEndTurn()
         }
     }
@@ -201,20 +212,55 @@ class GameViewModel(
     /**
      * Can be any player
      */
-    private fun onDiscardCard(executingPlayer: PlayerWithState, cardType: CardType) {
+    private fun onDiscardCard(card: Cards, executingPlayer: PlayerWithState) {
         viewModelScope.launch {
-            when (cardType) {
-                CardType.Spy -> TODO()
-                CardType.Guard -> TODO()
-                CardType.Priest -> TODO()
-                CardType.Baron -> TODO()
-                CardType.Handmaid -> TODO()
-                CardType.Prince -> TODO()
-                CardType.Chancellor -> TODO()
-                CardType.King -> TODO()
-                CardType.Countess -> TODO()
-                CardType.Princess -> TODO()
+            when (card.cardType) {
+                CardType.Spy -> {
+                    println("Discarding card: spy...")
+                }
+
+                CardType.Guard -> {
+                    println("Discarding card: guard...")
+                }
+
+                CardType.Priest -> {
+                    println("Discarding card: priest...")
+                }
+
+                CardType.Baron -> {
+                    println("Discarding card: baron...")
+                }
+
+                CardType.Handmaid -> {
+                    println("Discarding card: handmaid...")
+                }
+
+                CardType.Prince -> {
+                    println("Discarding card: prince...")
+                }
+
+                CardType.Chancellor -> {
+                    println("Discarding card: chancellor...")
+                }
+
+                CardType.King -> {
+                    println("Discarding card: king...")
+                }
+
+                CardType.Countess -> {
+                    println("Discarding card: countess...")
+                }
+
+                CardType.Princess -> {
+                    println("Discarding card: princess...")
+                }
             }
+
+            //TODO: remove card from hand
+//            val updatedState = executingPlayer.copy()
+//            updatedState.playerState.hand.indexOf(find { id -> id == card.id }!!)
+//            onCurrentPlayerWithStateChanged(updatedState)
+
         }
     }
 
@@ -271,6 +317,7 @@ class GameViewModel(
             //update state
             _activeGameSession.value = gameSession
             loadCurrentGameState()
+            loadActivePlayersWithState(gameSession.id)
         }
     }
 
