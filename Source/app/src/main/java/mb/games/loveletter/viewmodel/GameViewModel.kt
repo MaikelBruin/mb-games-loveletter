@@ -41,15 +41,12 @@ class GameViewModel(
     private val _currentTurn = mutableLongStateOf(0)
     private val currentTurn: State<Long> = _currentTurn
 
-    private val _currentPlayerPlayer = mutableStateOf<Player?>(null)
-    val currentPlayerPlayer: State<Player?> = _currentPlayerPlayer
-
     var playerNameState by mutableStateOf("")
     var isHumanState by mutableStateOf(false)
 
     //STATE FLOWS
     private val _currentPlayerWithState = MutableStateFlow<PlayerWithState?>(null)
-    private val currentPlayerWithState: StateFlow<PlayerWithState?> =
+    val currentPlayerWithState: StateFlow<PlayerWithState?> =
         _currentPlayerWithState.asStateFlow()
 
     private val _activeGameSession = MutableStateFlow<GameSession?>(null)
@@ -84,10 +81,6 @@ class GameViewModel(
 
     private fun onCurrentTurnChanged(currentTurn: Long) {
         _currentTurn.longValue = currentTurn
-    }
-
-    private fun onCurrentPlayerChanged(player: Player) {
-        _currentPlayerPlayer.value = player
     }
 
     private fun onHumanPlayerWithStateChanged(playerWithState: PlayerWithState) {
@@ -169,8 +162,8 @@ class GameViewModel(
                 onEndRound()
             } else {
                 _currentPlayerWithState.value.let { currentPlayerWithState ->
-                    println("Starting turn for '${currentPlayerPlayer.value?.name}'...")
-                    onDealCardToPlayer(currentPlayerWithState!!.player.id, card.id)
+                    println("Starting turn for '${currentPlayerWithState!!.player.name}'...")
+                    onDealCardToPlayer(currentPlayerWithState.player.id, card.id)
                     if (currentPlayerWithState.player.isHuman) {
                         println("Play a card")
                     } else {
@@ -305,13 +298,11 @@ class GameViewModel(
 
     private fun onEndTurn() {
         viewModelScope.launch {
-            println("Ending turn for player '${currentPlayerPlayer.value?.name}'...")
+            println("Ending turn for player '${currentPlayerWithState.value?.player?.name}'...")
             val nextPlayerId: Long = getNextPlayerId()
 
-            val nextPlayer = playerRepository.getPlayerByIdSuspend(nextPlayerId)
             val nextPlayerWithState = playerRepository.getPlayerWithState(nextPlayerId)
             onCurrentTurnChanged(nextPlayerId)
-            onCurrentPlayerChanged(nextPlayer)
             onCurrentPlayerWithStateChanged(nextPlayerWithState)
             onStartTurn()
         }
@@ -391,12 +382,10 @@ class GameViewModel(
     //game sessions
     private suspend fun loadCurrentGameState() {
         val currentTurnId = activeGameSession.value!!.turnOrder.first()
-        val currentPlayer = playerRepository.getPlayerByIdSuspend(currentTurnId)
         val currentPlayerWithState = playerRepository.getPlayerWithState(currentTurnId)
         val humanPlayerState = playerRepository.getHumanPlayerWithState()
 
         onCurrentTurnChanged(currentTurnId)
-        onCurrentPlayerChanged(currentPlayer)
         onHumanPlayerWithStateChanged(humanPlayerState)
         onCurrentPlayerWithStateChanged(currentPlayerWithState)
         onStartTurn()

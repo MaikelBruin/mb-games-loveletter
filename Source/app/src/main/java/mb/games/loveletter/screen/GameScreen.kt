@@ -31,7 +31,7 @@ fun GameView(
     viewModel: GameViewModel
 ) {
     val players = viewModel.getAllPlayers.collectAsState(initial = listOf())
-    val currentPlayer by viewModel.currentPlayerPlayer
+    val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
     val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
@@ -75,7 +75,7 @@ fun GameView(
                         )
                     }
                     Row {
-                        Text(text = "Current turn: ${currentPlayer?.name}")
+                        Text(text = "Current turn: ${currentPlayerWithState?.player?.name}")
                     }
                 }
             }
@@ -99,9 +99,7 @@ fun GameView(
 
                     LazyRow {
                         items(cardsInHand) { card ->
-                            CardItemView(
-                                card = card,
-                                onClick = { viewModel.onPlayCard(card) })
+                            CardItemView(card = card, onClick = { viewModel.onPlayCard(card) })
                         }
                     }
                 }
