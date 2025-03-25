@@ -27,7 +27,7 @@ import mb.games.loveletter.data.GameSessionRepository
 import mb.games.loveletter.data.PlayerRepository
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.PlayerRoundState
-import mb.games.loveletter.data.PlayerState
+import mb.games.loveletter.data.PlayerGameState
 import mb.games.loveletter.data.PlayerStateRepository
 import mb.games.loveletter.data.PlayerWithState
 
@@ -354,7 +354,7 @@ class GameViewModel(
             // Create player states in db
             // and create player round states in memory
             playerIds.forEach { playerId ->
-                val playerState = PlayerState(
+                val playerState = PlayerGameState(
                     gameSessionId = gameSession.id, playerId = playerId
                 )
                 playerStateRepository.insertPlayerState(playerState)

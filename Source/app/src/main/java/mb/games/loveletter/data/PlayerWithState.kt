@@ -9,7 +9,7 @@ data class PlayerWithState(
         parentColumn = "id",
         entityColumn = "playerId"
     )
-    val playerState: PlayerState
+    val playerState: PlayerGameState
 )
 
 object DummyPlayerWithState {
