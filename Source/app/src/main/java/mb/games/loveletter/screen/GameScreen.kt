@@ -7,16 +7,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.ui.theme.Bordeaux
+import mb.games.loveletter.ui.theme.Orange
 import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
@@ -30,11 +35,14 @@ fun GameScreen(
 fun GameView(
     viewModel: GameViewModel
 ) {
-    val playersInGame by viewModel.playersWithState.collectAsState(initial = listOf())
+    val playersInGame by viewModel.playersWithState.collectAsState()
     val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
-    val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
+    val turnOrder by viewModel.turnOrder.collectAsState()
+    val activities by viewModel.activities.collectAsState()
+    val activitiesListState = rememberLazyListState()
+    val roundEnded by viewModel.roundEnded.collectAsState()
 
     Row(
         modifier = Modifier
@@ -47,11 +55,7 @@ fun GameView(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
-            //top left, should display logs for player and bot turns
-            val playerNames = playersInGame.map { playerWithState -> playerWithState.player.name }
-            val playerIds = playersInGame.map { playerWithState -> playerWithState.player.id }
-            val turnOrder =
-                activeGameSession?.turnOrder?.map { turn -> playersInGame.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
+            //top left, should display card play options
             Row(
                 modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
@@ -60,21 +64,8 @@ fun GameView(
                 Column {
                     Row {
                         Text(
-                            text = "player names: $playerNames"
+                            text = "Should show card play options"
                         )
-                    }
-                    Row {
-                        Text(
-                            text = "player ids: $playerIds"
-                        )
-                    }
-                    Row {
-                        Text(
-                            text = "turn order: $turnOrder"
-                        )
-                    }
-                    Row {
-                        Text(text = "Current turn: ${currentPlayerWithState?.player?.name}")
                     }
                 }
             }
@@ -98,7 +89,13 @@ fun GameView(
 
                     LazyRow {
                         items(cardsInHand) { card ->
-                            CardItemView(card = card, onClick = { viewModel.onPlayCard(card) })
+                            CardItemView(card = card, onClick = {
+                                if (roundEnded) {
+                                    viewModel.onAddActivity("Cannot play card, round has ended")
+                                } else {
+                                    viewModel.onPlayCard(card)
+                                }
+                            })
                         }
                     }
                 }
@@ -106,27 +103,44 @@ fun GameView(
         }
         //right
         Column(
-            modifier = Modifier.fillMaxWidth(fraction = 0.5F),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Top,
         ) {
-            //top right, should show deck information
+            //top right, should show deck information and turn order
             Row(
-                modifier = Modifier.fillMaxHeight(0.5F),
+                modifier = Modifier.fillMaxHeight(),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.End
             ) {
                 val cardsRemaining = deck.getCards().size
-                Text(text = "cards remaining in deck: $cardsRemaining")  //FIXME: deck is less than 21 cards because hands are dealt
-            }
+                val turnOrderNames =
+                    turnOrder.map { turn -> playersInGame.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
 
-            //bottom right, should show menu items
-            Row(
-                modifier = Modifier.fillMaxHeight(0.5F),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(text = "should show menu items")
+                Column {
+                    Row {
+                        Text(text = "cards remaining in deck: $cardsRemaining")
+                    }
+                    Row {
+                        Text(
+                            text = "turn order: $turnOrderNames, Current turn: ${currentPlayerWithState?.player?.name}"
+                        )
+                    }
+                    LaunchedEffect(activities) {
+                        activitiesListState.animateScrollToItem(activitiesListState.layoutInfo.totalItemsCount)
+                    }
+                    Row {
+                        LazyColumn(
+                            modifier = Modifier.background(Color.Yellow),
+                            userScrollEnabled = true,
+                            state = activitiesListState
+                        ) {
+                            items(activities) { activity ->
+                                Text(text = activity)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

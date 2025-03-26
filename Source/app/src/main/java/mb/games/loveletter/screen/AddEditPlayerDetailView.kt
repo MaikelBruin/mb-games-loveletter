@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import mb.games.loveletter.R
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
@@ -56,13 +57,9 @@ fun AddEditPlayerDetailView(
     }
 
     Scaffold(
-        topBar = {
-            AppBarView(
-                title = if (id != 0L) stringResource(id = R.string.update_player)
-                else stringResource(id = R.string.add_player)
-            ) { navController.navigateUp() }
-        }, scaffoldState = scaffoldState
-    ) {
+        scaffoldState = scaffoldState,
+        backgroundColor = Bordeaux
+    ) { it ->
         Column(
             modifier = Modifier
                 .padding(it)
@@ -75,6 +72,7 @@ fun AddEditPlayerDetailView(
             PlayerTextField(label = "Name", value = viewModel.playerNameState, onValueChanged = {
                 viewModel.onPlayerNameChanged(it)
             })
+            Text(text = "Is human?")
             PlayerCheckBox(checked = viewModel.isHumanState, onValueChanged = {
                 viewModel.onPlayerIsHumanChanged(it)
             })

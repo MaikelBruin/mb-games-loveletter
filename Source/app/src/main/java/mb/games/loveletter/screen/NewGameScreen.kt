@@ -68,7 +68,6 @@ fun NewGameView(
     val scaffoldState = rememberScaffoldState()
     Scaffold(scaffoldState = scaffoldState,
         backgroundColor = Bordeaux,
-        topBar = { AppBarView(title = "Players") },
         floatingActionButton = {
             FloatingActionButton(modifier = Modifier.padding(all = 20.dp),
                 contentColor = Color.Black,
