@@ -30,11 +30,11 @@ fun GameScreen(
 fun GameView(
     viewModel: GameViewModel
 ) {
-    val playersInGame by viewModel.playersWithState.collectAsState(initial = listOf())
+    val playersInGame by viewModel.playersWithState.collectAsState()
     val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
-    val activeGameSession by viewModel.activeGameSession.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
+    val turnOrder by viewModel.turnOrder.collectAsState()
 
     Row(
         modifier = Modifier
@@ -50,8 +50,8 @@ fun GameView(
             //top left, should display logs for player and bot turns
             val playerNames = playersInGame.map { playerWithState -> playerWithState.player.name }
             val playerIds = playersInGame.map { playerWithState -> playerWithState.player.id }
-            val turnOrder =
-                activeGameSession?.turnOrder?.map { turn -> playersInGame.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
+            val turnOrderNames =
+                turnOrder.map { turn -> playersInGame.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
             Row(
                 modifier = Modifier.fillMaxHeight(0.5F),
                 verticalAlignment = Alignment.Top,
@@ -70,7 +70,7 @@ fun GameView(
                     }
                     Row {
                         Text(
-                            text = "turn order: $turnOrder"
+                            text = "turn order: $turnOrderNames"
                         )
                     }
                     Row {
