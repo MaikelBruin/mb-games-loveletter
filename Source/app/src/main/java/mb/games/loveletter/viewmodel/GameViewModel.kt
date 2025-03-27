@@ -379,9 +379,7 @@ class GameViewModel(
                     playersWithState.value.filter { winningPlayerIds.contains(it.player.id) }
                 onAddActivity(
                     "Player(s) '${winningPlayersNames.map { it.player.name }}' win(s) with card '${
-                        Cards.fromId(
-                            winningPlayer.hand[0]
-                        ).cardType.card.name
+                        Cards.fromId(winningPlayer.hand[0]).cardType.card.name
                     }'"
                 )
                 onAddActivity("Final cards: " + playerRoundStates.value.values
@@ -416,7 +414,28 @@ class GameViewModel(
                 playerStateRepository.updatePlayerState(newPlayerGameState)
             }
 
+            //check if game has ended
+            val gameSession = activeGameSession.value!!
+            val gameWinners = playersWithState.value.filter {
+                it.playerGameState.favorTokens == gameSession.tokensToWin
+            }
+
+            if (gameWinners.isNotEmpty()) {
+                onEndGame(gameWinners)
+                return@launch
+            }
+
+            //if game has not ended, update game state and show button to start next round
+            val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
+            //TODO: set turn order based on round winner
         }
+    }
+
+    private fun onEndGame(winners: List<PlayerWithGameState>) {
+        onAddActivity("Game has ended!")
+        //update game session
+        //set gameSession isActive to false
+        //update player objects (wins, plays, game session id)
     }
 
     private fun determineSpyWinner(playerRoundStates: Map<Long, PlayerRoundState>): PlayerRoundState? {

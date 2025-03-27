@@ -8,7 +8,7 @@ data class PlayerGameState(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val gameSessionId: Long,
     val playerId: Long,
-    var favorTokens: Long = 0
+    var favorTokens: Int = 0
 )
 
 object DummyPlayerState {
