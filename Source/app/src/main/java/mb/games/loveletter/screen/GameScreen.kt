@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.ui.theme.Bordeaux
-import mb.games.loveletter.ui.theme.Orange
 import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
@@ -35,7 +34,7 @@ fun GameScreen(
 fun GameView(
     viewModel: GameViewModel
 ) {
-    val playersInGame by viewModel.playersWithState.collectAsState()
+    val playersWithGameState by viewModel.playersWithState.collectAsState()
     val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
     val deck by viewModel.deck.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
@@ -62,6 +61,13 @@ fun GameView(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Column {
+                    Row {
+                        val tokensByName =
+                            playersWithGameState.map { "${it.player.name}: ${it.playerGameState.favorTokens}" }
+                        Text(
+                            text = "Tokens: $tokensByName"
+                        )
+                    }
                     Row {
                         Text(
                             text = "Should show card play options"
@@ -115,7 +121,7 @@ fun GameView(
             ) {
                 val cardsRemaining = deck.getCards().size
                 val turnOrderNames =
-                    turnOrder.map { turn -> playersInGame.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
+                    turnOrder.map { turn -> playersWithGameState.find { playerWithState -> playerWithState.player.id == turn }?.player?.name }
 
                 Column {
                     Row {
