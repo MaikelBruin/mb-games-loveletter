@@ -360,15 +360,19 @@ class GameViewModel(
             onAddActivity("Round ended!")
             _roundEnded.value = true
             val roundWinners = mutableListOf<Long>()
+
+            //determine winners
             if (turnOrder.value.size == 1) {
                 val roundWinner = turnOrder.value[0]
                 roundWinners.add(roundWinner)
                 onAddActivity("Player with id '$roundWinner' wins! All other players are eliminated.")
             } else {
-                val winningPlayer = playerRoundStates.value.values.filter { it.isAlive }
+                val winningPlayer = playerRoundStates.value.values
+                    .filter { it.isAlive }
                     .maxByOrNull { playerRoundState -> Cards.fromId(playerRoundState.hand[0]).cardType.card.value }!!
                 val winningPlayerIds =
-                    playerRoundStates.value.values.filter { it.hand[0] == winningPlayer.hand[0] }
+                    playerRoundStates.value.values
+                        .filter { it.hand[0] == winningPlayer.hand[0] }
                         .map { it.playerId }
                 roundWinners.addAll(winningPlayerIds)
                 val winningPlayersNames =
@@ -380,30 +384,30 @@ class GameViewModel(
                         ).cardType.card.name
                     }'"
                 )
-                onAddActivity("Final cards: " + playerRoundStates.value.values.filter { it.isAlive }
+                onAddActivity("Final cards: " + playerRoundStates.value.values
+                    .filter { it.isAlive }
                     .map {
                         Cards.fromId(it.hand[0]).cardType.card.name
                     })
             }
 
+            //call out round winners
+            val roundWinnerNames = playersWithState.value
+                .filter { roundWinners.contains(it.player.id) }
+                .map { it.player.name }
+            onAddActivity("Round winner(s): '${roundWinnerNames}'")
+
+            //call out spy winner
             val spyWinner = determineSpyWinner(playerRoundStates.value)
             if (spyWinner != null) {
                 val spyWinnerName =
                     playersWithState.value.find { it.player.id == spyWinner.playerId }!!.player.name
                 onAddActivity("Spy winner: '${spyWinnerName}'")
-                val playerGameState = playerRepository.getPlayerWithState(
-                    spyWinner.playerId, activeGameSession.value!!.id
-                ).playerGameState
-                val newPlayerGameState =
-                    playerGameState.copy(favorTokens = playerGameState.favorTokens + 1)
-                playerStateRepository.updatePlayerState(newPlayerGameState)
+                roundWinners.add(spyWinner.playerId)
             }
 
+            //deal out token to round winner(s) and spy winner
             roundWinners.forEach { roundWinner ->
-                val roundWinnerNames = playersWithState.value.filter {
-                    it.player.id == roundWinner
-                }.map { it.player.name }
-                onAddActivity("Round winner(s): '${roundWinnerNames}'")
                 val playerGameState = playerRepository.getPlayerWithState(
                     roundWinner, activeGameSession.value!!.id
                 ).playerGameState
