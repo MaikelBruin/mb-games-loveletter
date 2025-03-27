@@ -386,10 +386,43 @@ class GameViewModel(
                     })
             }
 
-            //TODO: update state
-            //give tokens to roundwinners
-            //give token to spy winner
+            val spyWinner = determineSpyWinner(playerRoundStates.value)
+            if (spyWinner != null) {
+                val spyWinnerName =
+                    playersWithState.value.find { it.player.id == spyWinner.playerId }!!.player.name
+                onAddActivity("Spy winner: '${spyWinnerName}'")
+                val playerGameState = playerRepository.getPlayerWithState(
+                    spyWinner.playerId, activeGameSession.value!!.id
+                ).playerGameState
+                val newPlayerGameState =
+                    playerGameState.copy(favorTokens = playerGameState.favorTokens + 1)
+                playerStateRepository.updatePlayerState(newPlayerGameState)
+            }
+
+            roundWinners.forEach { roundWinner ->
+                val roundWinnerNames = playersWithState.value.filter {
+                    it.player.id == roundWinner
+                }.map { it.player.name }
+                onAddActivity("Round winner(s): '${roundWinnerNames}'")
+                val playerGameState = playerRepository.getPlayerWithState(
+                    roundWinner, activeGameSession.value!!.id
+                ).playerGameState
+                val newPlayerGameState =
+                    playerGameState.copy(favorTokens = playerGameState.favorTokens + 1)
+                playerStateRepository.updatePlayerState(newPlayerGameState)
+            }
+
         }
+    }
+
+    private fun determineSpyWinner(playerRoundStates: Map<Long, PlayerRoundState>): PlayerRoundState? {
+        val spyCards = listOf(Cards.Spy1.id, Cards.Spy2.id)
+        val hasASpyCard = playerRoundStates.values.filter { playerRoundState ->
+            playerRoundState.isAlive && spyCards.any { playerRoundState.discardPile.contains(it) }
+        }
+        return if (hasASpyCard.size == 1) {
+            hasASpyCard.first()
+        } else null
     }
 
     //player round states

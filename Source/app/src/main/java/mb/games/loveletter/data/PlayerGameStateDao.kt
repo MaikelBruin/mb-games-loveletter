@@ -10,15 +10,15 @@ import androidx.room.Update
 interface PlayerGameStateDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPlayerState(playerState: PlayerGameState)
+    suspend fun insertPlayerGameState(playerGameState: PlayerGameState)
 
     @Update
-    suspend fun updatePlayerState(playerState: PlayerGameState)
+    suspend fun updatePlayerGameState(playerGameState: PlayerGameState)
 
     @Query("SELECT * FROM player_states WHERE gameSessionId = :gameSessionId")
     suspend fun getActivePlayers(gameSessionId: Long): List<PlayerGameState>
 
     @Query("SELECT * FROM player_states WHERE playerId = :playerId")
-    suspend fun getPlayerState(playerId: Long): PlayerGameState
+    suspend fun getPlayerGameState(playerId: Long): PlayerGameState
 
 }

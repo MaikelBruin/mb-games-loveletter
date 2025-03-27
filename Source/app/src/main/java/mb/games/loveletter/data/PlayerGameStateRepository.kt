@@ -3,14 +3,14 @@ package mb.games.loveletter.data
 class PlayerGameStateRepository(private val playerStateDao: PlayerGameStateDao) {
 
     suspend fun insertPlayerState(playerState: PlayerGameState) {
-        playerStateDao.insertPlayerState(playerState)
+        playerStateDao.insertPlayerGameState(playerState)
     }
 
     suspend fun updatePlayerState(playerState: PlayerGameState) {
-        playerStateDao.updatePlayerState(playerState)
+        playerStateDao.updatePlayerGameState(playerState)
     }
 
     suspend fun getPlayerState(playerId: Long): PlayerGameState {
-        return playerStateDao.getPlayerState(playerId)
+        return playerStateDao.getPlayerGameState(playerId)
     }
 }

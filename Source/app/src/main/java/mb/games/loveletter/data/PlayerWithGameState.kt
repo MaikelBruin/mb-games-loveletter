@@ -6,11 +6,11 @@ import androidx.room.Relation
 data class PlayerWithGameState(
     @Embedded val player: Player, @Relation(
         parentColumn = "id", entityColumn = "playerId"
-    ) val playerState: PlayerGameState
+    ) val playerGameState: PlayerGameState
 )
 
 object DummyPlayerWithGameState {
     val playerWithGameState = PlayerWithGameState(
-        player = DummyPlayer.player, playerState = DummyPlayerState.playerState
+        player = DummyPlayer.player, playerGameState = DummyPlayerState.playerState
     )
 }
