@@ -37,6 +37,7 @@ fun GameView(
     val playersWithGameState by viewModel.playersWithState.collectAsState()
     val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
     val deck by viewModel.deck.collectAsState()
+    val activeGameSession by viewModel.activeGameSession.collectAsState()
     val humanPlayerRoundState by viewModel.humanPlayerRoundState.collectAsState()
     val turnOrder by viewModel.turnOrder.collectAsState()
     val activities by viewModel.activities.collectAsState()
@@ -64,8 +65,11 @@ fun GameView(
                     Row {
                         val tokensByName =
                             playersWithGameState.map { "${it.player.name}: ${it.playerGameState.favorTokens}" }
+                        var tokensToWin = 0
+                        if  (activeGameSession != null)
+                            tokensToWin = activeGameSession!!.tokensToWin
                         Text(
-                            text = "Tokens: $tokensByName"
+                            text = "Favor tokens: $tokensByName, tokens to win: $tokensToWin"
                         )
                     }
                     Row {
