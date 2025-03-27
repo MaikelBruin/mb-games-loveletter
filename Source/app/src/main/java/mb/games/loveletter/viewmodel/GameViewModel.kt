@@ -425,6 +425,7 @@ class GameViewModel(
                 it.playerGameState.favorTokens >= gameSession.tokensToWin
             }
 
+            //FIXME: it looks like playersWithState is not updated immediately because the win is only triggered in the next round
             if (gameWinners.isNotEmpty()) {
                 onEndGame(gameWinners)
                 return@launch
