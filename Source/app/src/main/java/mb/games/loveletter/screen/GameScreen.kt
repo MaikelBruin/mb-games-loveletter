@@ -20,19 +20,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import mb.games.loveletter.data.Cards
+import mb.games.loveletter.data.exitGameMenuItem
+import mb.games.loveletter.data.newRoundMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
 import mb.games.loveletter.viewmodel.GameViewModel
 
 @Composable
 fun GameScreen(
-    viewModel: GameViewModel
+    viewModel: GameViewModel,
+    onExitGame: () -> Unit
 ) {
-    GameView(viewModel)
+    GameView(viewModel, onExitGame)
 }
 
 @Composable
 fun GameView(
-    viewModel: GameViewModel
+    viewModel: GameViewModel,
+    onExitGame: () -> Unit
 ) {
     val playersWithGameState by viewModel.playersWithState.collectAsState()
     val currentPlayerWithState by viewModel.currentPlayerWithState.collectAsState()
@@ -43,6 +47,7 @@ fun GameView(
     val activities by viewModel.activities.collectAsState()
     val activitiesListState = rememberLazyListState()
     val roundEnded by viewModel.roundEnded.collectAsState()
+    val gameEnded by viewModel.gameEnded.collectAsState()
 
     Row(
         modifier = Modifier
@@ -66,7 +71,7 @@ fun GameView(
                         val tokensByName =
                             playersWithGameState.map { "${it.player.name}: ${it.playerGameState.favorTokens}" }
                         var tokensToWin = 0
-                        if  (activeGameSession != null)
+                        if (activeGameSession != null)
                             tokensToWin = activeGameSession!!.tokensToWin
                         Text(
                             text = "Favor tokens: $tokensByName, tokens to win: $tokensToWin"
@@ -76,6 +81,15 @@ fun GameView(
                         Text(
                             text = "Should show card play options"
                         )
+                    }
+                    if (gameEnded) {
+                        MenuItemView(
+                            menuItem = exitGameMenuItem,
+                            onClick = { onExitGame() })
+                    } else if (roundEnded) {
+                        MenuItemView(
+                            menuItem = newRoundMenuItem,
+                            onClick = { viewModel.onStartNewRound(activeGameSession!!.playerIds) })
                     }
                 }
             }

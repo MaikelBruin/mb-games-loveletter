@@ -54,6 +54,9 @@ class GameViewModel(
     private val _roundEnded = MutableStateFlow(false)
     val roundEnded: StateFlow<Boolean> = _roundEnded.asStateFlow()
 
+    private val _gameEnded = MutableStateFlow(false)
+    val gameEnded: StateFlow<Boolean> = _gameEnded.asStateFlow()
+
     //all players
     private val _playersWithState = MutableStateFlow<List<PlayerWithGameState>>(emptyList())
     val playersWithState: StateFlow<List<PlayerWithGameState>> = _playersWithState.asStateFlow()
@@ -151,32 +154,34 @@ class GameViewModel(
         }
     }
 
-    private suspend fun onStartNewRound(playerIds: List<Long>) {
-        onAddActivity("Starting new round...")
-        _roundEnded.value = false
-        _playerRoundStates.value = playerIds.associateWith {
-            PlayerRoundState(playerId = it)
+    fun onStartNewRound(playerIds: List<Long>) {
+        viewModelScope.launch {
+            onAddActivity("Starting new round...")
+            _roundEnded.value = false
+            _playerRoundStates.value = playerIds.associateWith {
+                PlayerRoundState(playerId = it)
+            }
+
+            val newTurnOrder = playerIds.shuffled() //TODO: base this on previous round winner
+            _turnOrder.value = newTurnOrder
+            _currentTurnIndex.value = 0
+            _currentTurn.value = newTurnOrder[currentTurnIndex.value]
+
+            _deck.value = Deck.createNewDeck()
+            val hands = deck.value.deal(newTurnOrder)
+            for ((playerId, card) in hands) {
+                onDealCardToPlayer(playerId, card.id)
+            }
+
+            loadActivePlayersWithState(activeGameSession.value!!.id)
+            val newPlayerWithState = playerRepository.getPlayerWithState(currentTurn.value)
+            val newHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
+
+            //update state
+            _humanPlayerWithState.value = newHumanPlayerWithState
+            _currentPlayerWithState.value = newPlayerWithState
+            onStartTurn()
         }
-
-        val newTurnOrder = playerIds.shuffled()
-        _turnOrder.value = newTurnOrder
-        _currentTurnIndex.value = 0
-        _currentTurn.value = newTurnOrder[currentTurnIndex.value]
-
-        val hands = deck.value.deal(newTurnOrder)
-        for ((playerId, card) in hands) {
-            onDealCardToPlayer(playerId, card.id)
-        }
-
-        loadActivePlayersWithState(activeGameSession.value!!.id)
-        val newPlayerWithState = playerRepository.getPlayerWithState(currentTurn.value)
-        val newHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
-
-        //update state
-        _humanPlayerWithState.value = newHumanPlayerWithState
-        _currentPlayerWithState.value = newPlayerWithState
-        onStartTurn()
-
     }
 
     private fun onStartTurn() {
@@ -417,7 +422,7 @@ class GameViewModel(
             //check if game has ended
             val gameSession = activeGameSession.value!!
             val gameWinners = playersWithState.value.filter {
-                it.playerGameState.favorTokens == gameSession.tokensToWin
+                it.playerGameState.favorTokens >= gameSession.tokensToWin
             }
 
             if (gameWinners.isNotEmpty()) {
@@ -429,17 +434,26 @@ class GameViewModel(
             val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
             gameSessionRepository.updateGameSession(updatedGameSession)
             //TODO: set turn order based on round winner
-
-            //TODO: show button to start new round
-
         }
     }
 
     private fun onEndGame(winners: List<PlayerWithGameState>) {
-        onAddActivity("Game has ended!")
-        //update game session
-        //set gameSession isActive to false
-        //update player objects (wins, plays, game session id)
+        viewModelScope.launch {
+            val winnerNames = winners.map { it.player.name }
+            onAddActivity("Game has ended! Winner(s): $winnerNames")
+            _gameEnded.value = true
+            winners.forEach {
+                val player = playerRepository.getPlayerByIdSuspend(it.player.id)
+                val updatedPlayer = player.copy(wins = player.wins++)
+                playerRepository.updatePlayer(updatedPlayer)
+            }
+            playersWithState.value.forEach {
+                val player = playerRepository.getPlayerByIdSuspend(it.player.id)
+                val updatedPlayer = player.copy(plays = player.plays++)
+                playerRepository.updatePlayer(updatedPlayer)
+            }
+        }
+
     }
 
     private fun determineSpyWinner(playerRoundStates: Map<Long, PlayerRoundState>): PlayerRoundState? {

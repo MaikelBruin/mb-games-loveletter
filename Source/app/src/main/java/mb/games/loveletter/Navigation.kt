@@ -52,7 +52,8 @@ fun NavigationGraph(
         }
         composable(Screen.GameScreen.route) {
             GameScreen(
-                viewModel = gameViewModel
+                viewModel = gameViewModel,
+                onExitGame = { navHostController.navigate(Screen.HomeScreen.route) }
             )
         }
         composable(Screen.AddPlayerScreen.route + "/{id}", arguments = listOf(navArgument("id") {
