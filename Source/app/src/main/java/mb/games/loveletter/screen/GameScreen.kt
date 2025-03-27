@@ -70,7 +70,7 @@ fun GameView(
                     Row {
                         val tokensByName =
                             playersWithGameState.map { "${it.player.name}: ${it.playerGameState.favorTokens}" }
-                        var tokensToWin = 0
+                        var tokensToWin = 0 //FIXME: I break when game ends
                         if (activeGameSession != null)
                             tokensToWin = activeGameSession!!.tokensToWin
                         Text(

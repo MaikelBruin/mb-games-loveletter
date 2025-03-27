@@ -422,11 +422,11 @@ class GameViewModel(
 
             //check if game has ended
             val gameSession = activeGameSession.value!!
+            loadActivePlayersWithState(gameSession.id) //update needed for determining game end
             val gameWinners = playersWithState.value.filter {
                 it.playerGameState.favorTokens >= gameSession.tokensToWin
             }
 
-            //FIXME: it looks like playersWithState is not updated immediately because the win is only triggered in the next round
             if (gameWinners.isNotEmpty()) {
                 onEndGame(gameWinners)
                 return@launch
