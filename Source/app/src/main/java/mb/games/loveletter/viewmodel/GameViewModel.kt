@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.CardType
@@ -453,6 +454,11 @@ class GameViewModel(
                 val updatedPlayer = player.copy(plays = player.plays++)
                 playerRepository.updatePlayer(updatedPlayer)
             }
+
+            activeGameSession.value?.let { session ->
+                gameSessionRepository.updateGameSession(session.copy(isActive = false))
+            }
+            _activeGameSession.value = null
         }
 
     }
@@ -483,6 +489,7 @@ class GameViewModel(
     //Game sessions
     fun onStartNewGame(playerIds: List<Long>) {
         viewModelScope.launch(Dispatchers.IO) {
+            _gameEnded.value = false
             _deck.value = Deck.createNewDeck()
             _activities.value = emptyList()
             val turnOrder = playerIds.shuffled()
