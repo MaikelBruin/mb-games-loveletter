@@ -427,7 +427,11 @@ class GameViewModel(
 
             //if game has not ended, update game state and show button to start next round
             val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
+            gameSessionRepository.updateGameSession(updatedGameSession)
             //TODO: set turn order based on round winner
+
+            //TODO: show button to start new round
+
         }
     }
 
