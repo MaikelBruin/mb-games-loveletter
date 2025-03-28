@@ -39,7 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.newGameMenuItems
 import mb.games.loveletter.ui.theme.Bordeaux
@@ -152,7 +154,9 @@ fun NewGameView(
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
                             "Start game" -> {
-                                viewModel.onStartNewGame(players.value.map { player -> player.id })
+                                viewModel.viewModelScope.launch {
+                                    viewModel.onStartNewGame(players.value.map { player -> player.id })
+                                }
                                 onStartGame()
                             }
 

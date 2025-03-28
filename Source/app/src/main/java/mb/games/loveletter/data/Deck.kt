@@ -7,6 +7,16 @@ class Deck(private val cards: MutableList<Cards>) {
         return cards
     }
 
+    fun returnCardToBottomOfDeck(card: Cards) {
+        cards.add(card)
+    }
+
+    fun returnCardsToBottomOfDeck(cardsToReturn: List<Cards>) {
+        cardsToReturn.forEach {
+            returnCardToBottomOfDeck(it)
+        }
+    }
+
     fun deal(playerIds: List<Long>): Map<Long, Cards> {
         val hands = mutableMapOf<Long, Cards>()  // Store which player gets which card
         for (player in playerIds) {
