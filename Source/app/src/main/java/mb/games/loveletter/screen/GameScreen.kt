@@ -1,6 +1,7 @@
 package mb.games.loveletter.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import mb.games.loveletter.data.Cards
+import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.exitGameMenuItem
 import mb.games.loveletter.data.newRoundMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
@@ -48,6 +53,8 @@ fun GameView(
     val activitiesListState = rememberLazyListState()
     val roundEnded by viewModel.roundEnded.collectAsState()
     val gameEnded by viewModel.gameEnded.collectAsState()
+    val playingChancellor by viewModel.playingChancellor.collectAsState()
+    val eligibleTargets by viewModel.eligibleTargetPlayers.collectAsState()
 
     Row(
         modifier = Modifier
@@ -82,6 +89,22 @@ fun GameView(
                             text = "Should show card play options"
                         )
                     }
+                    Row {
+                        val eligibleTargetIds = eligibleTargets.map { it.playerId }
+                        val eligibleTargetNames = playersWithGameState
+                            .filter { eligibleTargetIds.contains(it.player.id) }
+                            .map { it.player.name }
+                        LazyColumn {
+                            items(eligibleTargets) {
+                                val player = viewModel.getAPlayerById(it.playerId).collectAsState(
+                                    initial = Player(name = "")
+                                )
+                                Text(modifier = Modifier.clickable {
+                                    viewModel.onChooseTarget(it)
+                                }, text = player.value.name)
+                            }
+                        }
+                    }
                     if (gameEnded) {
                         MenuItemView(
                             menuItem = exitGameMenuItem,
@@ -89,7 +112,11 @@ fun GameView(
                     } else if (roundEnded) {
                         MenuItemView(
                             menuItem = newRoundMenuItem,
-                            onClick = { viewModel.onStartNewRound(activeGameSession!!.playerIds) })
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    viewModel.onStartNewRound(activeGameSession!!.playerIds)
+                                }
+                            })
                     }
                 }
             }
@@ -117,7 +144,14 @@ fun GameView(
                                 if (roundEnded) {
                                     viewModel.onAddActivity("Cannot play card, round has ended")
                                 } else {
-                                    viewModel.onPlayCard(card)
+                                    if (playingChancellor) {
+                                        viewModel.onChancellorReturnCardToDeck(
+                                            humanPlayerRoundState!!.playerId,
+                                            card.id
+                                        )
+                                    } else {
+                                        viewModel.onPlayCard(card)
+                                    }
                                 }
                             })
                         }
