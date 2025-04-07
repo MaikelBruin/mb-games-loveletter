@@ -21,10 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import mb.games.loveletter.data.CardType
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Player
+import mb.games.loveletter.data.PlayerRoundState
 import mb.games.loveletter.data.exitGameMenuItem
 import mb.games.loveletter.data.newRoundMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
@@ -53,8 +54,9 @@ fun GameView(
     val activitiesListState = rememberLazyListState()
     val roundEnded by viewModel.roundEnded.collectAsState()
     val gameEnded by viewModel.gameEnded.collectAsState()
-    val playingChancellor by viewModel.playingChancellor.collectAsState()
+    val playingCard by viewModel.playingCard.collectAsState()
     val eligibleTargets by viewModel.eligibleTargetPlayers.collectAsState()
+    val cardTypes by viewModel.cardTypes.collectAsState()
 
     Row(
         modifier = Modifier
@@ -90,18 +92,26 @@ fun GameView(
                         )
                     }
                     Row {
-                        val eligibleTargetIds = eligibleTargets.map { it.playerId }
-                        val eligibleTargetNames = playersWithGameState
-                            .filter { eligibleTargetIds.contains(it.player.id) }
-                            .map { it.player.name }
-                        LazyColumn {
-                            items(eligibleTargets) {
-                                val player = viewModel.getAPlayerById(it.playerId).collectAsState(
-                                    initial = Player(name = "")
-                                )
-                                Text(modifier = Modifier.clickable {
-                                    viewModel.onChooseTarget(it)
-                                }, text = player.value.name)
+                        if (eligibleTargets.isNotEmpty()) {
+                            LazyColumn {
+                                items(eligibleTargets) {
+                                    val player =
+                                        viewModel.getAPlayerById(it.playerId).collectAsState(
+                                            initial = Player(name = "")
+                                        )
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.onChooseTarget(it, playingCard!!)
+                                    }, text = player.value.name)
+                                }
+                            }
+                        }
+                        if (cardTypes.isNotEmpty()) {
+                            LazyColumn {
+                                items(cardTypes) {
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.onGuessHand(it)
+                                    }, text = it.card.name)
+                                }
                             }
                         }
                     }
@@ -144,7 +154,7 @@ fun GameView(
                                 if (roundEnded) {
                                     viewModel.onAddActivity("Cannot play card, round has ended")
                                 } else {
-                                    if (playingChancellor) {
+                                    if (playingCard == CardType.Chancellor) {
                                         viewModel.onChancellorReturnCardToDeck(
                                             humanPlayerRoundState!!.playerId,
                                             card.id
