@@ -11,12 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import mb.games.loveletter.Graph
 import mb.games.loveletter.data.CardType
@@ -58,6 +58,9 @@ class GameViewModel(
     private val _gameEnded = MutableStateFlow(false)
     val gameEnded: StateFlow<Boolean> = _gameEnded.asStateFlow()
 
+    private val _playingChancellor = MutableStateFlow(false)
+    val playingChancellor: StateFlow<Boolean> = _playingChancellor.asStateFlow()
+
     //all players
     private val _playersWithState = MutableStateFlow<List<PlayerWithGameState>>(emptyList())
     val playersWithState: StateFlow<List<PlayerWithGameState>> = _playersWithState.asStateFlow()
@@ -65,6 +68,9 @@ class GameViewModel(
     private val _playerRoundStates = MutableStateFlow<Map<Long, PlayerRoundState>>(emptyMap())
     private val playerRoundStates: StateFlow<Map<Long, PlayerRoundState>> =
         _playerRoundStates.asStateFlow()
+
+    private val _eligibleTargetPlayers = MutableStateFlow<List<PlayerRoundState>>(emptyList())
+    val eligibleTargetPlayers: StateFlow<List<PlayerRoundState>> = _eligibleTargetPlayers.asStateFlow()
 
     //current turn / player
     private val _turnOrder = MutableStateFlow<List<Long>>(emptyList())
@@ -155,42 +161,57 @@ class GameViewModel(
         }
     }
 
-    fun onStartNewRound(playerIds: List<Long>) {
-        viewModelScope.launch {
-            onAddActivity("Starting new round...")
-            _roundEnded.value = false
-            _playerRoundStates.value = playerIds.associateWith {
-                PlayerRoundState(playerId = it)
-            }
+    private fun getCurrentPlayerWithGameState(): PlayerWithGameState {
+        return playersWithState.value.find {
+            currentTurn.value == it.player.id
+        }!!
+    }
 
-            val newTurnOrder = playerIds.shuffled() //TODO: base this on previous round winner
-            _turnOrder.value = newTurnOrder
-            _currentTurnIndex.value = 0
-            _currentTurn.value = newTurnOrder[currentTurnIndex.value]
+    private fun getCurrentPlayerRoundState(): PlayerRoundState {
+        return playerRoundStates.value.values.find {
+            currentTurn.value == it.playerId
+        }!!
+    }
 
-            _deck.value = Deck.createNewDeck()
-            val hands = deck.value.deal(newTurnOrder)
-            for ((playerId, card) in hands) {
-                onDealCardToPlayer(playerId, card.id)
-            }
-
-            loadActivePlayersWithState(activeGameSession.value!!.id)
-            val newPlayerWithState = playerRepository.getPlayerWithState(currentTurn.value)
-            val newHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
-
-            //update state
-            _humanPlayerWithState.value = newHumanPlayerWithState
-            _currentPlayerWithState.value = newPlayerWithState
-            onStartTurn()
+    private fun updatePlayerRoundState(playerId: Long, updatedState: PlayerRoundState) {
+        _playerRoundStates.update { currentStates ->
+            currentStates + (playerId to updatedState)
         }
+    }
+
+    suspend fun onStartNewRound(playerIds: List<Long>) {
+        onAddActivity("Starting new round...")
+        _roundEnded.value = false
+        _playerRoundStates.value = playerIds.associateWith {
+            PlayerRoundState(playerId = it)
+        }
+
+        val newTurnOrder = playerIds.shuffled() //TODO: base this on previous round winner
+        _turnOrder.value = newTurnOrder
+        _currentTurnIndex.value = 0
+        _currentTurn.value = newTurnOrder[currentTurnIndex.value]
+
+        _deck.value = Deck.createNewDeck()
+        val hands = deck.value.deal(newTurnOrder)
+        for ((playerId, card) in hands) {
+            onDealCardToPlayer(playerId, card.id)
+        }
+
+        loadActivePlayersWithState(activeGameSession.value!!.id)
+        val newPlayerWithState = playerRepository.getPlayerWithState(currentTurn.value)
+        val newHumanPlayerWithState = playerRepository.getHumanPlayerWithState()
+
+        //update state
+        _humanPlayerWithState.value = newHumanPlayerWithState
+        _currentPlayerWithState.value = newPlayerWithState
+        onStartTurn()
     }
 
     private fun onStartTurn() {
         viewModelScope.launch {
             val card = deck.value.drawCard()
-            currentPlayerWithState.value.let { currentPlayerWithState ->
-                val message = "Starting turn for '${currentPlayerWithState!!.player.name}'..."
-                onAddActivity(message)
+            _currentPlayerWithState.value.let { currentPlayerWithState ->
+                onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
                 onDealCardToPlayer(currentPlayerWithState.player.id, card!!.id)
                 if (currentPlayerWithState.player.isHuman) {
                     onAddActivity("Play a card")
@@ -204,8 +225,9 @@ class GameViewModel(
     /**
      * Should always be the current player
      */
-    fun onPlayCard(card: Cards, targetPlayer: PlayerWithGameState? = null) {
+    fun onPlayCard(card: Cards) {
         viewModelScope.launch {
+            onDiscardCard(card, currentTurn.value)
             when (card.cardType) {
                 CardType.Spy -> {
                     onAddActivity("Playing card: spy...")
@@ -213,6 +235,7 @@ class GameViewModel(
 
                 CardType.Guard -> {
                     onAddActivity("Playing card: guard...")
+                    onPlayGuard()
                 }
 
                 CardType.Priest -> {
@@ -225,6 +248,9 @@ class GameViewModel(
 
                 CardType.Handmaid -> {
                     onAddActivity("Playing card: handmaid...")
+                    val updatedState =
+                        getPlayerRoundState(currentTurn.value).copy(isProtected = true)
+                    updatePlayerRoundState(currentTurn.value, updatedState)
                 }
 
                 CardType.Prince -> {
@@ -233,6 +259,7 @@ class GameViewModel(
 
                 CardType.Chancellor -> {
                     onAddActivity("Playing card: chancellor...")
+                    onPlayChancellor()
                 }
 
                 CardType.King -> {
@@ -249,69 +276,133 @@ class GameViewModel(
                 }
             }
 
-            onDiscardCard(card, _currentPlayerWithState.value!!)
             onEndTurn()
+        }
+    }
+
+    fun onChooseTarget(target: PlayerRoundState) {
+        onAddActivity("Choosing target '${target.playerId}'")
+    }
+
+    private fun onPlayGuard() {
+        val eligibleTargets = getEligiblePlayersForCardEffect()
+        _eligibleTargetPlayers.value = eligibleTargets
+        //TODO: finish
+    }
+
+    private suspend fun onPlayChancellor() {
+        val firstCard = deck.value.drawCard()
+        val secondCard = deck.value.drawCard()
+        var currentPlayerRoundState: PlayerRoundState = getCurrentPlayerRoundState()
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        var remainingHand: List<Int> = currentPlayerRoundState.hand
+        val cardIdsToReturn =
+            emptyList<Int>().toMutableList()
+        if (firstCard == null) {
+            onAddActivity("Deck is empty so chancellor has no effect...")
+        } else if (secondCard == null) {
+            onAddActivity("Can only draw one card because deck is empty...")
+            onDealCardToPlayer(currentPlayerGameState.player.id, firstCard.id)
+            currentPlayerRoundState = getCurrentPlayerRoundState()
+            if (currentPlayerGameState.player.isHuman) {
+                _playingChancellor.value = true
+                playingChancellor.collectLatest { playingChancellor ->
+                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                        return@collectLatest
+                    }
+                }
+            } else {
+                val shuffled = currentPlayerRoundState.hand.shuffled()
+                cardIdsToReturn.addAll(shuffled.take(1))
+                remainingHand = shuffled.drop(1)
+            }
+        } else {
+            //normal case for chancellor
+            onDealCardToPlayer(currentPlayerGameState.player.id, firstCard.id)
+            onDealCardToPlayer(currentPlayerGameState.player.id, secondCard.id)
+            currentPlayerRoundState = getCurrentPlayerRoundState()
+            if (currentPlayerGameState.player.isHuman) {
+                _playingChancellor.value = true
+                playingChancellor.collectLatest { playingChancellor ->
+                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                        return@collectLatest
+                    }
+                }
+            } else {
+                val shuffled = currentPlayerRoundState.hand.shuffled()
+                cardIdsToReturn.addAll(shuffled.take(2))
+                remainingHand = shuffled.drop(2)
+            }
+        }
+
+        _playingChancellor.value = false
+
+        val updatedState =
+            getPlayerRoundState(currentTurn.value).copy(hand = remainingHand)
+        updatePlayerRoundState(currentTurn.value, updatedState)
+    }
+
+    private fun getEligiblePlayersForCardEffect(): List<PlayerRoundState> {
+        return playerRoundStates.value.values.filter {
+            !it.isProtected && it.isAlive
         }
     }
 
     /**
      * Can be any player
      */
-    private fun onDiscardCard(card: Cards, executingPlayer: PlayerWithGameState) {
-        viewModelScope.launch {
-            when (card.cardType) {
-                CardType.Spy -> {
-                    onAddActivity("Discarding card: spy...")
-                }
-
-                CardType.Guard -> {
-                    onAddActivity("Discarding card: guard...")
-                }
-
-                CardType.Priest -> {
-                    onAddActivity("Discarding card: priest...")
-                }
-
-                CardType.Baron -> {
-                    onAddActivity("Discarding card: baron...")
-                }
-
-                CardType.Handmaid -> {
-                    onAddActivity("Discarding card: handmaid...")
-                }
-
-                CardType.Prince -> {
-                    onAddActivity("Discarding card: prince...")
-                }
-
-                CardType.Chancellor -> {
-                    onAddActivity("Discarding card: chancellor...")
-                }
-
-                CardType.King -> {
-                    onAddActivity("Discarding card: king...")
-                }
-
-                CardType.Countess -> {
-                    onAddActivity("Discarding card: countess...")
-                }
-
-                CardType.Princess -> {
-                    onAddActivity("Discarding card: princess...")
-                    eliminatePlayer(executingPlayer.player.id)
-                }
+    private fun onDiscardCard(card: Cards, executingPlayerId: Long) {
+        when (card.cardType) {
+            CardType.Spy -> {
+                onAddActivity("Discarding card: spy...")
             }
 
-            //update hand and discard pile
-            _playerRoundStates.update { states ->
-                states.mapValues { (id, state) ->
-                    if (id == executingPlayer.player.id) state.copy(
-                        hand = state.hand - card.id, discardPile = state.discardPile + card.id
-                    ) else state
-                }
+            CardType.Guard -> {
+                onAddActivity("Discarding card: guard...")
             }
 
+            CardType.Priest -> {
+                onAddActivity("Discarding card: priest...")
+            }
+
+            CardType.Baron -> {
+                onAddActivity("Discarding card: baron...")
+            }
+
+            CardType.Handmaid -> {
+                onAddActivity("Discarding card: handmaid...")
+            }
+
+            CardType.Prince -> {
+                onAddActivity("Discarding card: prince...")
+            }
+
+            CardType.Chancellor -> {
+                onAddActivity("Discarding card: chancellor...")
+            }
+
+            CardType.King -> {
+                onAddActivity("Discarding card: king...")
+            }
+
+            CardType.Countess -> {
+                onAddActivity("Discarding card: countess...")
+            }
+
+            CardType.Princess -> {
+                onAddActivity("Discarding card: princess...")
+                eliminatePlayer(executingPlayerId)
+            }
         }
+
+        //update hand and discard pile
+        val currentState = getPlayerRoundState(executingPlayerId)
+        val updatedState = currentState.copy(
+            hand = currentState.hand - card.id,
+            discardPile = currentState.discardPile + card.id
+        )
+        updatePlayerRoundState(executingPlayerId, updatedState)
+
     }
 
     private fun eliminatePlayer(playerId: Long) {
@@ -331,7 +422,7 @@ class GameViewModel(
             if (roundEnded()) {
                 return@launch
             } else {
-                onAddActivity("Ending turn for player '${currentPlayerWithState.value?.player?.name}'...")
+                onAddActivity("Ending turn for player '${getCurrentPlayerWithGameState().player.name}'...")
                 val order = _turnOrder.value
                 if (order.isNotEmpty()) {
                     val nextIndex = (_currentTurnIndex.value + 1) % order.size
@@ -486,35 +577,49 @@ class GameViewModel(
         }
     }
 
-    //Game sessions
-    fun onStartNewGame(playerIds: List<Long>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _gameEnded.value = false
-            _deck.value = Deck.createNewDeck()
-            _activities.value = emptyList()
-            val turnOrder = playerIds.shuffled()
-            val gameSession = GameSession(
-                playerIds = playerIds,
-                turnOrder = turnOrder,
-                tokensToWin = getNumberOfTokensToWin(playerIds.size),
-                isActive = true
-            )
-
-            // Create player states in db
-            // and create player round states in memory
-            playerIds.forEach { playerId ->
-                val playerState = PlayerGameState(
-                    gameSessionId = gameSession.id, playerId = playerId
-                )
-                playerStateRepository.insertPlayerState(playerState)
+    fun onChancellorReturnCardToDeck(playerId: Long, cardToReturn: Int) {
+        onAddActivity("Returning card '${cardToReturn}' to deck for player '${playerId}'...")
+        _playerRoundStates.update { states ->
+            states.mapValues { (id, state) ->
+                if (id == playerId) state.copy(hand = state.hand - cardToReturn) else state
             }
-
-            //update state
-            _activeGameSession.value = gameSession
-
-            //start round
-            onStartNewRound(playerIds)
         }
+
+        deck.value.returnCardToBottomOfDeck(Cards.fromId(cardToReturn))
+        if (getCurrentPlayerRoundState().hand.size == 1) {
+            onAddActivity("Done playing chancellor")
+            _playingChancellor.value = false
+            onEndTurn()
+        }
+    }
+
+    //Game sessions
+    suspend fun onStartNewGame(playerIds: List<Long>) {
+        _gameEnded.value = false
+        _deck.value = Deck.createNewDeck()
+        _activities.value = emptyList()
+        val turnOrder = playerIds.shuffled()
+        val gameSession = GameSession(
+            playerIds = playerIds,
+            turnOrder = turnOrder,
+            tokensToWin = getNumberOfTokensToWin(playerIds.size),
+            isActive = true
+        )
+
+        // Create player states in db
+        // and create player round states in memory
+        playerIds.forEach { playerId ->
+            val playerState = PlayerGameState(
+                gameSessionId = gameSession.id, playerId = playerId
+            )
+            playerStateRepository.insertPlayerState(playerState)
+        }
+
+        //update state
+        _activeGameSession.value = gameSession
+
+        //start round
+        onStartNewRound(playerIds)
     }
 
     //SUSPEND FUNCTIONS
