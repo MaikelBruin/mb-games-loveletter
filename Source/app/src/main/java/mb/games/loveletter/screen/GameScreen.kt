@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import mb.games.loveletter.data.CardType
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Player
-import mb.games.loveletter.data.PlayerRoundState
 import mb.games.loveletter.data.exitGameMenuItem
 import mb.games.loveletter.data.newRoundMenuItem
 import mb.games.loveletter.ui.theme.Bordeaux
@@ -87,12 +86,10 @@ fun GameView(
                         )
                     }
                     Row {
-                        Text(
-                            text = "Should show card play options"
-                        )
-                    }
-                    Row {
                         if (eligibleTargets.isNotEmpty()) {
+                            Text(
+                                text = "Eligible targets:"
+                            )
                             LazyColumn {
                                 items(eligibleTargets) {
                                     val player =
@@ -100,21 +97,28 @@ fun GameView(
                                             initial = Player(name = "")
                                         )
                                     Text(modifier = Modifier.clickable {
-                                        viewModel.onChooseTarget(it, playingCard!!)
+                                        viewModel.showCardTypes(it, playingCard!!)
                                     }, text = player.value.name)
                                 }
                             }
                         }
+                    }
+                    Row {
                         if (cardTypes.isNotEmpty()) {
+                            Text(
+                                text = "Choose one of these cards:"
+                            )
                             LazyColumn {
                                 items(cardTypes) {
+                                    val card = it.card
                                     Text(modifier = Modifier.clickable {
                                         viewModel.onGuessHand(it)
-                                    }, text = it.card.name)
+                                    }, text = card.name)
                                 }
                             }
                         }
                     }
+
                     if (gameEnded) {
                         MenuItemView(
                             menuItem = exitGameMenuItem,

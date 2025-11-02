@@ -215,16 +215,14 @@ class GameViewModel(
     }
 
     private fun onStartTurn() {
-        viewModelScope.launch {
-            val card = deck.value.drawCard()
-            _currentPlayerWithState.value.let { currentPlayerWithState ->
-                onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
-                onDealCardToPlayer(currentPlayerWithState.player.id, card!!.id)
-                if (currentPlayerWithState.player.isHuman) {
-                    onAddActivity("Play a card")
-                } else {
-                    onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
-                }
+        val card = deck.value.drawCard()
+        _currentPlayerWithState.value.let { currentPlayerWithState ->
+            onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
+            onDealCardToPlayer(currentPlayerWithState.player.id, card!!.id)
+            if (currentPlayerWithState.player.isHuman) {
+                onAddActivity("Play a card")
+            } else {
+                onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
             }
         }
     }
@@ -287,7 +285,7 @@ class GameViewModel(
         }
     }
 
-    fun onChooseTarget(target: PlayerRoundState, playingCardType: CardType) {
+    fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
         val targetName =
             playersWithState.value.find { it.player.id == target.playerId }!!.player.name
         onAddActivity("Target chosen: '${targetName}'")
@@ -295,7 +293,7 @@ class GameViewModel(
         _targetPlayer.value = target
         when (playingCardType) {
             CardType.Guard -> {
-                onAddActivity("Choose a card type")
+                onAddActivity("Choose a non-guard card")
                 _cardTypes.value = CardType.entries.filter { it != CardType.Guard }
             }
 
@@ -318,8 +316,6 @@ class GameViewModel(
             else -> {}
         }
 
-        _targetPlayer.value = null
-        _cardTypes.value = emptyList()
     }
 
     fun onGuessHand(cardType: CardType) {
@@ -355,7 +351,7 @@ class GameViewModel(
             }
         } else {
             val target = eligibleTargets.random()
-            onChooseTarget(target, CardType.Guard)
+            showCardTypes(target, CardType.Guard)
             onGuessHand(CardType.entries.toTypedArray().random())
         }
 
@@ -513,7 +509,6 @@ class GameViewModel(
                 _currentPlayerWithState.value = nextPlayerWithState
                 onStartTurn()
             }
-
         }
     }
 
@@ -557,7 +552,8 @@ class GameViewModel(
                         Cards.fromId(winningPlayer.hand[0]).cardType.card.name
                     }'"
                 )
-                onAddActivity("Final cards: " + playerRoundStates.value.values
+                onAddActivity(
+                    "Final cards: " + playerRoundStates.value.values
                     .filter { it.isAlive }
                     .map {
                         Cards.fromId(it.hand[0]).cardType.card.name
