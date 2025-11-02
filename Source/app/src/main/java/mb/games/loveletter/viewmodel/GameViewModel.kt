@@ -241,6 +241,7 @@ class GameViewModel(
                 CardType.Guard -> {
                     onAddActivity("Playing card: guard...")
                     onPlayGuard()
+                    onAddActivity("Finished Playing card: guard...")
                 }
 
                 CardType.Priest -> {
@@ -280,9 +281,9 @@ class GameViewModel(
                     eliminatePlayer(currentTurn.value)
                 }
             }
-
             onEndTurn()
         }
+        //TODO: do onEndTurn() outside viewModelScope because it already launches its own?
     }
 
     fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
@@ -336,6 +337,7 @@ class GameViewModel(
         _cardTypes.value = emptyList()
         _targetPlayer.value = null
         _playingCard.value = null
+        onEndTurn()
     }
 
     private suspend fun onPlayGuard() {
@@ -349,7 +351,6 @@ class GameViewModel(
         if (currentPlayerGameState.player.isHuman) {
             _playingCard.value = CardType.Guard
             _eligibleTargetPlayers.value = eligibleTargets
-            //FIXME: it looks like this collectLatest method is never returning
             playingCard.collectLatest { playingCard ->
                 if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
                     return@collectLatest
@@ -360,10 +361,6 @@ class GameViewModel(
             showCardTypes(target, CardType.Guard)
             onGuessHand(CardType.entries.toTypedArray().random())
         }
-
-        //FIXME: we need to correctly update the game state when a human player plays the guard, currently the game freezes after guessing a hand
-        onAddActivity("end of onPlayGuard")
-
     }
 
     private suspend fun onPlayChancellor() {
