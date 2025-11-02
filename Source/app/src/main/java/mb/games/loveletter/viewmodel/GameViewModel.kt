@@ -241,7 +241,6 @@ class GameViewModel(
                 CardType.Guard -> {
                     onAddActivity("Playing card: guard...")
                     onPlayGuard()
-                    onAddActivity("Finished Playing card: guard...")
                 }
 
                 CardType.Priest -> {
@@ -270,10 +269,12 @@ class GameViewModel(
 
                 CardType.King -> {
                     onAddActivity("Playing card: king...")
+                    onEndTurn()
                 }
 
                 CardType.Countess -> {
                     onAddActivity("Playing card: countess...")
+                    onEndTurn()
                 }
 
                 CardType.Princess -> {
@@ -281,6 +282,7 @@ class GameViewModel(
                     eliminatePlayer(currentTurn.value)
                 }
             }
+            onAddActivity("am i ever here?")
             onEndTurn()
         }
         //TODO: do onEndTurn() outside viewModelScope because it already launches its own?
@@ -337,7 +339,6 @@ class GameViewModel(
         _cardTypes.value = emptyList()
         _targetPlayer.value = null
         _playingCard.value = null
-        onEndTurn()
     }
 
     private suspend fun onPlayGuard() {
@@ -356,6 +357,7 @@ class GameViewModel(
                     return@collectLatest
                 }
             }
+            onAddActivity("just after collect latest for guard")
         } else {
             val target = eligibleTargets.random()
             showCardTypes(target, CardType.Guard)
@@ -384,6 +386,7 @@ class GameViewModel(
                         return@collectLatest
                     }
                 }
+                onAddActivity("just after collect latest of chancellor")
             } else {
                 val shuffled = currentPlayerRoundState.hand.shuffled()
                 cardIdsToReturn.addAll(shuffled.take(1))
@@ -401,6 +404,7 @@ class GameViewModel(
                         return@collectLatest
                     }
                 }
+                onAddActivity("just after collect latest of chancellor")
             } else {
                 val shuffled = currentPlayerRoundState.hand.shuffled()
                 cardIdsToReturn.addAll(shuffled.take(2))
@@ -500,24 +504,23 @@ class GameViewModel(
         _currentTurnIndex.value = 0.coerceAtMost(newOrder.lastIndex)
     }
 
-    private fun onEndTurn() {
-        viewModelScope.launch {
-            if (roundEnded()) {
-                return@launch
-            } else {
-                onAddActivity("Ending turn for player '${getCurrentPlayerWithGameState().player.name}'...")
-                val order = _turnOrder.value
-                if (order.isNotEmpty()) {
-                    val nextIndex = (_currentTurnIndex.value + 1) % order.size
-                    _currentTurnIndex.value = nextIndex
-                    _currentTurn.value = order[nextIndex]
-                }
-
-                val nextPlayerId = currentTurn.filterNotNull().first()
-                val nextPlayerWithState = playerRepository.getPlayerWithState(nextPlayerId)
-                _currentPlayerWithState.value = nextPlayerWithState
-                onStartTurn()
+    private suspend fun onEndTurn() {
+        if (roundEnded()) {
+            onEndRound()
+            return
+        } else {
+            onAddActivity("Ending turn for player '${getCurrentPlayerWithGameState().player.name}'...")
+            val order = _turnOrder.value
+            if (order.isNotEmpty()) {
+                val nextIndex = (_currentTurnIndex.value + 1) % order.size
+                _currentTurnIndex.value = nextIndex
+                _currentTurn.value = order[nextIndex]
             }
+
+            val nextPlayerId = currentTurn.filterNotNull().first()
+            val nextPlayerWithState = playerRepository.getPlayerWithState(nextPlayerId)
+            _currentPlayerWithState.value = nextPlayerWithState
+            onStartTurn()
         }
     }
 
@@ -527,15 +530,13 @@ class GameViewModel(
 
         return if (onlyOneAlive || deckIsEmpty) {
             onAddActivity("Round ended: ${if (onlyOneAlive) "Only one player is alive" else "Deck is empty"}")
-            onEndRound()
             true
         } else {
             false
         }
     }
 
-    private fun onEndRound() {
-        viewModelScope.launch {
+    private suspend fun onEndRound() {
             onAddActivity("Round ended!")
             _roundEnded.value = true
             val roundWinners = mutableListOf<Long>()
@@ -563,10 +564,10 @@ class GameViewModel(
                 )
                 onAddActivity(
                     "Final cards: " + playerRoundStates.value.values
-                    .filter { it.isAlive }
-                    .map {
-                        Cards.fromId(it.hand[0]).cardType.card.name
-                    })
+                        .filter { it.isAlive }
+                        .map {
+                            Cards.fromId(it.hand[0]).cardType.card.name
+                        })
             }
 
             //call out round winners
@@ -603,14 +604,13 @@ class GameViewModel(
 
             if (gameWinners.isNotEmpty()) {
                 onEndGame(gameWinners)
-                return@launch
+                return
             }
 
             //if game has not ended, update game state and show button to start next round
             val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
             gameSessionRepository.updateGameSession(updatedGameSession)
             //TODO: set turn order based on round winner
-        }
     }
 
     private fun onEndGame(winners: List<PlayerWithGameState>) {
@@ -672,7 +672,6 @@ class GameViewModel(
         if (getCurrentPlayerRoundState().hand.size == 1) {
             onAddActivity("Done playing chancellor")
             _playingCard.value = null
-            onEndTurn()
         }
     }
 
