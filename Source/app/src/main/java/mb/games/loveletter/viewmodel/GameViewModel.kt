@@ -70,7 +70,8 @@ class GameViewModel(
         _playerRoundStates.asStateFlow()
 
     private val _eligibleTargetPlayers = MutableStateFlow<List<PlayerRoundState>>(emptyList())
-    val eligibleTargetPlayers: StateFlow<List<PlayerRoundState>> = _eligibleTargetPlayers.asStateFlow()
+    val eligibleTargetPlayers: StateFlow<List<PlayerRoundState>> =
+        _eligibleTargetPlayers.asStateFlow()
 
     //current turn / player
     private val _turnOrder = MutableStateFlow<List<Long>>(emptyList())
@@ -161,6 +162,12 @@ class GameViewModel(
         }
     }
 
+    private fun getPlayerWithGameState(playerId: Long): PlayerWithGameState {
+        return playersWithState.value.find {
+            playerId == it.player.id
+        }!!
+    }
+
     private fun getCurrentPlayerWithGameState(): PlayerWithGameState {
         return playersWithState.value.find {
             currentTurn.value == it.player.id
@@ -208,16 +215,14 @@ class GameViewModel(
     }
 
     private fun onStartTurn() {
-        viewModelScope.launch {
-            val card = deck.value.drawCard()
-            _currentPlayerWithState.value.let { currentPlayerWithState ->
-                onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
-                onDealCardToPlayer(currentPlayerWithState.player.id, card!!.id)
-                if (currentPlayerWithState.player.isHuman) {
-                    onAddActivity("Play a card")
-                } else {
-                    onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
-                }
+        val card = deck.value.drawCard()
+        _currentPlayerWithState.value.let { currentPlayerWithState ->
+            onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
+            onDealCardToPlayer(currentPlayerWithState.player.id, card!!.id)
+            if (currentPlayerWithState.player.isHuman) {
+                onAddActivity("Play a card")
+            } else {
+                onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
             }
         }
     }
@@ -275,7 +280,6 @@ class GameViewModel(
                     eliminatePlayer(currentTurn.value)
                 }
             }
-
             onEndTurn()
         }
     }
@@ -406,6 +410,8 @@ class GameViewModel(
     }
 
     private fun eliminatePlayer(playerId: Long) {
+        val playerWithGameState = getPlayerWithGameState(playerId)
+        onAddActivity("Eliminating player '${playerWithGameState.player.name}'...")
         _playerRoundStates.update { states ->
             states.mapValues { (id, state) ->
                 if (id == playerId) state.copy(isAlive = false) else state
@@ -435,8 +441,8 @@ class GameViewModel(
                 _currentPlayerWithState.value = nextPlayerWithState
                 onStartTurn()
             }
-
         }
+
     }
 
     private fun roundEnded(): Boolean {
@@ -479,11 +485,12 @@ class GameViewModel(
                         Cards.fromId(winningPlayer.hand[0]).cardType.card.name
                     }'"
                 )
-                onAddActivity("Final cards: " + playerRoundStates.value.values
-                    .filter { it.isAlive }
-                    .map {
-                        Cards.fromId(it.hand[0]).cardType.card.name
-                    })
+                onAddActivity(
+                    "Final cards: " + playerRoundStates.value.values
+                        .filter { it.isAlive }
+                        .map {
+                            Cards.fromId(it.hand[0]).cardType.card.name
+                        })
             }
 
             //call out round winners
