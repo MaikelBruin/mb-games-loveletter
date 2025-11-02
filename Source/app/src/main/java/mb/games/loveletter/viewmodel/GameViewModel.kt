@@ -293,7 +293,7 @@ class GameViewModel(
         _targetPlayer.value = target
         when (playingCardType) {
             CardType.Guard -> {
-                onAddActivity("Choose a non-guard card")
+                onAddActivity("Choose a non-guard card:")
                 _cardTypes.value = CardType.entries.filter { it != CardType.Guard }
             }
 
@@ -326,11 +326,16 @@ class GameViewModel(
             if (Cards.fromId(targetPlayer.value!!.hand[0]).cardType == cardType) {
                 onAddActivity("Correct guess! Eliminating player '${targetPlayerWithGameState.player.name}'...")
                 eliminatePlayer(targetPlayer.value!!.playerId)
+            } else {
+                onAddActivity("Incorrect guess, '${targetPlayerWithGameState.player.name}' is still alive and kicking...")
             }
-
-            _cardTypes.value = emptyList()
-            _playingCard.value = null
         }
+
+        //restore state after playing guard
+        onAddActivity("Finished playing guard...")
+        _cardTypes.value = emptyList()
+        _targetPlayer.value = null
+        _playingCard.value = null
     }
 
     private suspend fun onPlayGuard() {
@@ -344,8 +349,9 @@ class GameViewModel(
         if (currentPlayerGameState.player.isHuman) {
             _playingCard.value = CardType.Guard
             _eligibleTargetPlayers.value = eligibleTargets
+            //FIXME: it looks like this collectLatest method is never returning
             playingCard.collectLatest { playingCard ->
-                if (playingCard == null) {
+                if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
                     return@collectLatest
                 }
             }
@@ -354,6 +360,9 @@ class GameViewModel(
             showCardTypes(target, CardType.Guard)
             onGuessHand(CardType.entries.toTypedArray().random())
         }
+
+        //FIXME: we need to correctly update the game state when a human player plays the guard, currently the game freezes after guessing a hand
+        onAddActivity("end of onPlayGuard")
 
     }
 
@@ -401,12 +410,15 @@ class GameViewModel(
                 remainingHand = shuffled.drop(2)
             }
         }
+        //FIXME: this code does not get executed when a human player plays the chancellor
 
         _playingCard.value = null
 
         val updatedState =
             getPlayerRoundState(currentTurn.value).copy(hand = remainingHand)
         updatePlayerRoundState(currentTurn.value, updatedState)
+        onAddActivity("end of onPlayChancellor")
+
     }
 
     private fun getEligiblePlayersForCardEffect(
