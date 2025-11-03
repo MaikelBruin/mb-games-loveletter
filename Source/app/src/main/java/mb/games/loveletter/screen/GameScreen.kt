@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.data.CardType
@@ -113,7 +114,19 @@ fun GameView(
                                             initial = Player(name = "")
                                         )
                                     Text(modifier = Modifier.clickable {
-                                        viewModel.showCardTypes(it, playingCard!!)
+                                        when (playingCard) {
+                                            CardType.Baron -> {
+                                                viewModel.onCompareHands(it)
+                                            }
+
+                                            CardType.Guard -> {
+                                                viewModel.showCardTypes(it, playingCard!!)
+                                            }
+
+                                            else -> {
+                                                viewModel.onAddActivity("else branch")
+                                            }
+                                        }
                                     }, text = player.value.name)
                                 }
                             }

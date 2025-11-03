@@ -255,6 +255,7 @@ class GameViewModel(
 
                 CardType.Baron -> {
                     onAddActivity("Playing card: baron...")
+                    onPlayBaron()
                 }
 
                 CardType.Handmaid -> {
@@ -287,6 +288,29 @@ class GameViewModel(
                 }
             }
             onEndTurn()
+        }
+    }
+
+    private suspend fun onPlayBaron() {
+        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Baron)
+        if (eligibleTargets.isEmpty()) {
+            onAddActivity("Cannot play baron, no eligible targets.")
+            return
+        }
+
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        if (currentPlayerGameState.player.isHuman) {
+            _playingCard.value = CardType.Baron
+            _eligibleTargetPlayers.value = eligibleTargets
+            playingCard.collectLatest { playingCard ->
+                if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
+                    return@collectLatest
+                }
+            }
+            onAddActivity("just after collect latest for baron")
+        } else {
+            _targetPlayer.value = eligibleTargets.random()
+            onCompareHands(_targetPlayer.value!!)
         }
     }
 
@@ -450,12 +474,16 @@ class GameViewModel(
         _currentTurnIndex.value = 0.coerceAtMost(newOrder.lastIndex)
     }
 
-    fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
+    fun selectTarget(target: PlayerRoundState) {
         val targetName =
             playersWithState.value.find { it.player.id == target.playerId }!!.player.name
         onAddActivity("Target chosen: '${targetName}'")
         _eligibleTargetPlayers.value = emptyList()
         _targetPlayer.value = target
+    }
+
+    fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
+        selectTarget(target)
         when (playingCardType) {
             CardType.Guard -> {
                 onAddActivity("Choose a non-guard card:")
@@ -498,6 +526,40 @@ class GameViewModel(
 
         //restore state after playing guard
         onAddActivity("Finished playing guard...")
+        _cardTypes.value = emptyList()
+        _targetPlayer.value = null
+        _playingCard.value = null
+        currentPlayerWithState.value?.player?.let {
+            if (it.isHuman) {
+                onEndTurn()
+            }
+        }
+    }
+
+    fun onCompareHands(target: PlayerRoundState) {
+        selectTarget(target)
+        val currentPlayerRoundState = getCurrentPlayerRoundState()
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        targetPlayer.value?.let { it ->
+            val targetPlayerRoundState = playerRoundStates.value[it.playerId]
+            val targetPlayerWithGameState =
+                playersWithState.value.find { it.player.id == targetPlayer.value!!.playerId }!!
+            onAddActivity("Comparing hands of '${currentPlayerGameState.player.name}' with '${targetPlayerWithGameState.player.name}'")
+            val comparison =
+                currentPlayerRoundState.hand[0].compareTo(targetPlayerRoundState!!.hand[0])
+            if (comparison > 0) {
+                onAddActivity("Player '${currentPlayerGameState.player.name}' won!")
+                eliminatePlayer(targetPlayerRoundState.playerId)
+            } else if (comparison < 0) {
+                onAddActivity("Player '${targetPlayerWithGameState.player.name}' won!")
+                eliminatePlayer(currentPlayerRoundState.playerId)
+            } else {
+                onAddActivity("It's a tie, both players are still alive!")
+            }
+        }
+
+        //restore state after playing guard
+        onAddActivity("Finished playing baron...")
         _cardTypes.value = emptyList()
         _targetPlayer.value = null
         _playingCard.value = null
