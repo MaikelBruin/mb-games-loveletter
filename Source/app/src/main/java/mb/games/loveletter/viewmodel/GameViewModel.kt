@@ -290,14 +290,28 @@ class GameViewModel(
         }
     }
 
-    fun onChooseTarget(target: PlayerRoundState) {
-        onAddActivity("Choosing target '${target.playerId}'")
-    }
+    private suspend fun onPlayGuard() {
+        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Guard)
+        if (eligibleTargets.isEmpty()) {
+            onAddActivity("Cannot play guard, no eligible targets.")
+            return
+        }
 
-    private fun onPlayGuard() {
-        val eligibleTargets = getEligiblePlayersForCardEffect()
-        _eligibleTargetPlayers.value = eligibleTargets
-        //TODO: finish
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        if (currentPlayerGameState.player.isHuman) {
+            _playingCard.value = CardType.Guard
+            _eligibleTargetPlayers.value = eligibleTargets
+            playingCard.collectLatest { playingCard ->
+                if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
+                    return@collectLatest
+                }
+            }
+            onAddActivity("just after collect latest for guard")
+        } else {
+            val target = eligibleTargets.random()
+            showCardTypes(target, CardType.Guard)
+            onGuessHand(CardType.entries.toTypedArray().random())
+        }
     }
 
     private suspend fun onPlayChancellor() {
@@ -352,10 +366,17 @@ class GameViewModel(
         updatePlayerRoundState(currentTurn.value, updatedState)
     }
 
-    private fun getEligiblePlayersForCardEffect(): List<PlayerRoundState> {
-        return playerRoundStates.value.values.filter {
+    private fun getEligiblePlayersForCardEffect(
+        executingPlayerId: Long,
+        cardType: CardType
+    ): List<PlayerRoundState> {
+        var result = playerRoundStates.value.values.filter {
             !it.isProtected && it.isAlive
         }
+        if (cardType != CardType.Prince) {
+            result = result.filter { it.playerId != executingPlayerId }
+        }
+        return result
     }
 
     /**
@@ -460,6 +481,31 @@ class GameViewModel(
             else -> {}
         }
 
+    }
+
+    fun onGuessHand(cardType: CardType) {
+        targetPlayer.value?.let {
+            val targetPlayerWithGameState =
+                playersWithState.value.find { it.player.id == targetPlayer.value!!.playerId }!!
+            onAddActivity("Guessing that player '${targetPlayerWithGameState.player.name}' has cardType '${cardType.card.name}'")
+            if (Cards.fromId(targetPlayer.value!!.hand[0]).cardType == cardType) {
+                onAddActivity("Correct guess! Eliminating player '${targetPlayerWithGameState.player.name}'...")
+                eliminatePlayer(targetPlayer.value!!.playerId)
+            } else {
+                onAddActivity("Incorrect guess, '${targetPlayerWithGameState.player.name}' is still alive and kicking...")
+            }
+        }
+
+        //restore state after playing guard
+        onAddActivity("Finished playing guard...")
+        _cardTypes.value = emptyList()
+        _targetPlayer.value = null
+        _playingCard.value = null
+        currentPlayerWithState.value?.player?.let {
+            if (it.isHuman) {
+                onEndTurn()
+            }
+        }
     }
 
     private fun onEndTurn() {

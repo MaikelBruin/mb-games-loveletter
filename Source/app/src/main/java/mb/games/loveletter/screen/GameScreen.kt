@@ -86,19 +86,36 @@ fun GameView(
                             text = "Favor tokens: $tokensByName, tokens to win: $tokensToWin"
                         )
                     }
-                    if (eligibleTargets.isNotEmpty()) {
-                        Text(
-                            text = "Eligible targets:"
-                        )
-                        LazyColumn {
-                            items(eligibleTargets) {
-                                val player =
-                                    viewModel.getAPlayerById(it.playerId).collectAsState(
-                                        initial = Player(name = "")
-                                    )
-                                Text(modifier = Modifier.clickable {
-                                    viewModel.showCardTypes(it, playingCard!!)
-                                }, text = player.value.name)
+                    Row {
+                        if (cardTypes.isNotEmpty()) {
+                            Text(
+                                text = "Choose one of these cards:"
+                            )
+                            LazyColumn {
+                                items(cardTypes) {
+                                    val card = it.card
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.onGuessHand(it)
+                                    }, text = card.name)
+                                }
+                            }
+                        }
+                    }
+                    Row {
+                        if (eligibleTargets.isNotEmpty()) {
+                            Text(
+                                text = "Eligible targets:"
+                            )
+                            LazyColumn {
+                                items(eligibleTargets) {
+                                    val player =
+                                        viewModel.getAPlayerById(it.playerId).collectAsState(
+                                            initial = Player(name = "")
+                                        )
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.showCardTypes(it, playingCard!!)
+                                    }, text = player.value.name)
+                                }
                             }
                         }
                     }
