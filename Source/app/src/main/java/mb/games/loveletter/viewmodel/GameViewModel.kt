@@ -282,10 +282,8 @@ class GameViewModel(
                     eliminatePlayer(currentTurn.value)
                 }
             }
-            onAddActivity("am i ever here?")
             onEndTurn()
         }
-        //TODO: do onEndTurn() outside viewModelScope because it already launches its own?
     }
 
     fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
@@ -341,27 +339,29 @@ class GameViewModel(
         _playingCard.value = null
     }
 
-    private suspend fun onPlayGuard() {
-        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Guard)
-        if (eligibleTargets.isEmpty()) {
-            onAddActivity("Cannot play guard, no eligible targets.")
-            return
-        }
-
-        val currentPlayerGameState = getCurrentPlayerWithGameState()
-        if (currentPlayerGameState.player.isHuman) {
-            _playingCard.value = CardType.Guard
-            _eligibleTargetPlayers.value = eligibleTargets
-            playingCard.collectLatest { playingCard ->
-                if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
-                    return@collectLatest
-                }
+    private fun onPlayGuard() {
+        viewModelScope.launch {
+            val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Guard)
+            if (eligibleTargets.isEmpty()) {
+                onAddActivity("Cannot play guard, no eligible targets.")
+                return@launch
             }
-            onAddActivity("just after collect latest for guard")
-        } else {
-            val target = eligibleTargets.random()
-            showCardTypes(target, CardType.Guard)
-            onGuessHand(CardType.entries.toTypedArray().random())
+
+            val currentPlayerGameState = getCurrentPlayerWithGameState()
+            if (currentPlayerGameState.player.isHuman) {
+                _playingCard.value = CardType.Guard
+                _eligibleTargetPlayers.value = eligibleTargets
+                playingCard.collectLatest { playingCard ->
+                    if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
+                        return@collectLatest
+                    }
+                }
+                onAddActivity("just after collect latest for guard")
+            } else {
+                val target = eligibleTargets.random()
+                showCardTypes(target, CardType.Guard)
+                onGuessHand(CardType.entries.toTypedArray().random())
+            }
         }
     }
 
