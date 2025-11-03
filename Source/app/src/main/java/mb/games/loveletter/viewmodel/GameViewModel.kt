@@ -58,8 +58,11 @@ class GameViewModel(
     private val _gameEnded = MutableStateFlow(false)
     val gameEnded: StateFlow<Boolean> = _gameEnded.asStateFlow()
 
-    private val _playingChancellor = MutableStateFlow(false)
-    val playingChancellor: StateFlow<Boolean> = _playingChancellor.asStateFlow()
+    private val _playingCard = MutableStateFlow<CardType?>(null)
+    val playingCard: StateFlow<CardType?> = _playingCard.asStateFlow()
+
+    private val _cardTypes = MutableStateFlow<List<CardType>>(emptyList())
+    val cardTypes: StateFlow<List<CardType>> = _cardTypes.asStateFlow()
 
     //all players
     private val _playersWithState = MutableStateFlow<List<PlayerWithGameState>>(emptyList())
@@ -90,6 +93,9 @@ class GameViewModel(
     //human player
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
     val humanPlayerWithState: StateFlow<PlayerWithGameState?> = _humanPlayerWithState.asStateFlow()
+
+    private val _targetPlayer = MutableStateFlow<PlayerRoundState?>(null)
+    val targetPlayer: StateFlow<PlayerRoundState?> = _targetPlayer.asStateFlow()
 
     val humanPlayerRoundState: StateFlow<PlayerRoundState?> =
         combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
@@ -309,9 +315,9 @@ class GameViewModel(
             onDealCardToPlayer(currentPlayerGameState.player.id, firstCard.id)
             currentPlayerRoundState = getCurrentPlayerRoundState()
             if (currentPlayerGameState.player.isHuman) {
-                _playingChancellor.value = true
-                playingChancellor.collectLatest { playingChancellor ->
-                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                _playingCard.value = CardType.Chancellor
+                playingCard.collectLatest { playingCard ->
+                    if (playingCard == CardType.Chancellor || getCurrentPlayerRoundState().hand.size <= 1) {
                         return@collectLatest
                     }
                 }
@@ -326,9 +332,9 @@ class GameViewModel(
             onDealCardToPlayer(currentPlayerGameState.player.id, secondCard.id)
             currentPlayerRoundState = getCurrentPlayerRoundState()
             if (currentPlayerGameState.player.isHuman) {
-                _playingChancellor.value = true
-                playingChancellor.collectLatest { playingChancellor ->
-                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                _playingCard.value = CardType.Chancellor
+                playingCard.collectLatest { playingCardType ->
+                    if (playingCardType == CardType.Chancellor || getCurrentPlayerRoundState().hand.size <= 1) {
                         return@collectLatest
                     }
                 }
@@ -339,7 +345,7 @@ class GameViewModel(
             }
         }
 
-        _playingChancellor.value = false
+        _playingCard.value = null
 
         val updatedState =
             getPlayerRoundState(currentTurn.value).copy(hand = remainingHand)
@@ -421,6 +427,39 @@ class GameViewModel(
         val newOrder = _turnOrder.value.filter { it != playerId }
         _turnOrder.value = newOrder
         _currentTurnIndex.value = 0.coerceAtMost(newOrder.lastIndex)
+    }
+
+    fun showCardTypes(target: PlayerRoundState, playingCardType: CardType) {
+        val targetName =
+            playersWithState.value.find { it.player.id == target.playerId }!!.player.name
+        onAddActivity("Target chosen: '${targetName}'")
+        _eligibleTargetPlayers.value = emptyList()
+        _targetPlayer.value = target
+        when (playingCardType) {
+            CardType.Guard -> {
+                onAddActivity("Choose a non-guard card:")
+                _cardTypes.value = CardType.entries.filter { it != CardType.Guard }
+            }
+
+            CardType.Priest -> {
+                onAddActivity("Discarding card: priest...")
+            }
+
+            CardType.Baron -> {
+                onAddActivity("Discarding card: baron...")
+            }
+
+            CardType.Prince -> {
+                onAddActivity("Discarding card: prince...")
+            }
+
+            CardType.King -> {
+                onAddActivity("Discarding card: king...")
+            }
+
+            else -> {}
+        }
+
     }
 
     private fun onEndTurn() {
@@ -595,7 +634,7 @@ class GameViewModel(
         deck.value.returnCardToBottomOfDeck(Cards.fromId(cardToReturn))
         if (getCurrentPlayerRoundState().hand.size == 1) {
             onAddActivity("Done playing chancellor")
-            _playingChancellor.value = false
+            _playingCard.value = null
             onEndTurn()
         }
     }
