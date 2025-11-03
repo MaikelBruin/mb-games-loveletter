@@ -233,8 +233,6 @@ class GameViewModel(
     fun onPlayCard(card: Cards) {
         viewModelScope.launch {
             onDiscardCard(card, currentTurn.value)
-
-
             when (card.cardType) {
                 CardType.Spy -> {
                     onAddActivity("Playing card: spy...")
@@ -265,14 +263,6 @@ class GameViewModel(
                 }
 
                 CardType.Chancellor -> {
-                    if (getCurrentPlayerWithGameState().player.isHuman) {
-                        _playingChancellor.value = true
-                        playingChancellor.collectLatest { playingChancellor ->
-                            if (!playingChancellor) {
-                                return@collectLatest
-                            }
-                        }
-                    }
                     onAddActivity("Playing card: chancellor...")
                     onPlayChancellor()
                 }
@@ -304,7 +294,7 @@ class GameViewModel(
         //TODO: finish
     }
 
-    private fun onPlayChancellor() {
+    private suspend fun onPlayChancellor() {
         val firstCard = deck.value.drawCard()
         val secondCard = deck.value.drawCard()
         var currentPlayerRoundState: PlayerRoundState = getCurrentPlayerRoundState()
@@ -320,6 +310,11 @@ class GameViewModel(
             currentPlayerRoundState = getCurrentPlayerRoundState()
             if (currentPlayerGameState.player.isHuman) {
                 _playingChancellor.value = true
+                playingChancellor.collectLatest { playingChancellor ->
+                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                        return@collectLatest
+                    }
+                }
             } else {
                 val shuffled = currentPlayerRoundState.hand.shuffled()
                 cardIdsToReturn.addAll(shuffled.take(1))
@@ -332,6 +327,11 @@ class GameViewModel(
             currentPlayerRoundState = getCurrentPlayerRoundState()
             if (currentPlayerGameState.player.isHuman) {
                 _playingChancellor.value = true
+                playingChancellor.collectLatest { playingChancellor ->
+                    if (!playingChancellor || getCurrentPlayerRoundState().hand.size <= 1) {
+                        return@collectLatest
+                    }
+                }
             } else {
                 val shuffled = currentPlayerRoundState.hand.shuffled()
                 cardIdsToReturn.addAll(shuffled.take(2))
