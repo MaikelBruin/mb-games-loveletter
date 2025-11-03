@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import mb.games.loveletter.data.CardType
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Player
 import mb.games.loveletter.data.exitGameMenuItem
@@ -53,8 +54,9 @@ fun GameView(
     val activitiesListState = rememberLazyListState()
     val roundEnded by viewModel.roundEnded.collectAsState()
     val gameEnded by viewModel.gameEnded.collectAsState()
-    val playingChancellor by viewModel.playingChancellor.collectAsState()
     val eligibleTargets by viewModel.eligibleTargetPlayers.collectAsState()
+    val cardTypes by viewModel.cardTypes.collectAsState()
+    val playingCard by viewModel.playingCard.collectAsState()
 
     Row(
         modifier = Modifier
@@ -85,23 +87,35 @@ fun GameView(
                         )
                     }
                     Row {
-                        Text(
-                            text = "Should show card play options"
-                        )
+                        if (cardTypes.isNotEmpty()) {
+                            Text(
+                                text = "Choose one of these cards:"
+                            )
+                            LazyColumn {
+                                items(cardTypes) {
+                                    val card = it.card
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.onGuessHand(it)
+                                    }, text = card.name)
+                                }
+                            }
+                        }
                     }
                     Row {
-                        val eligibleTargetIds = eligibleTargets.map { it.playerId }
-                        val eligibleTargetNames = playersWithGameState
-                            .filter { eligibleTargetIds.contains(it.player.id) }
-                            .map { it.player.name }
-                        LazyColumn {
-                            items(eligibleTargets) {
-                                val player = viewModel.getAPlayerById(it.playerId).collectAsState(
-                                    initial = Player(name = "")
-                                )
-                                Text(modifier = Modifier.clickable {
-                                    viewModel.onChooseTarget(it)
-                                }, text = player.value.name)
+                        if (eligibleTargets.isNotEmpty()) {
+                            Text(
+                                text = "Eligible targets:"
+                            )
+                            LazyColumn {
+                                items(eligibleTargets) {
+                                    val player =
+                                        viewModel.getAPlayerById(it.playerId).collectAsState(
+                                            initial = Player(name = "")
+                                        )
+                                    Text(modifier = Modifier.clickable {
+                                        viewModel.showCardTypes(it, playingCard!!)
+                                    }, text = player.value.name)
+                                }
                             }
                         }
                     }
@@ -144,7 +158,7 @@ fun GameView(
                                 if (roundEnded) {
                                     viewModel.onAddActivity("Cannot play card, round has ended")
                                 } else {
-                                    if (playingChancellor) {
+                                    if (playingCard == CardType.Chancellor) {
                                         viewModel.onChancellorReturnCardToDeck(
                                             humanPlayerRoundState!!.playerId,
                                             card.id
