@@ -86,11 +86,6 @@ fun GameView(
                             text = "Favor tokens: $tokensByName, tokens to win: $tokensToWin"
                         )
                     }
-                    Row {
-                        Text(
-                            text = "Should show card play options"
-                        )
-                    }
                     if (eligibleTargets.isNotEmpty()) {
                         Text(
                             text = "Eligible targets:"
