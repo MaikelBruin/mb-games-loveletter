@@ -221,9 +221,12 @@ class GameViewModel(
     }
 
     private fun onStartTurn() {
+        //Reset handmaid protection
         val updatedState =
             getPlayerRoundState(currentTurn.value).copy(isProtected = false)
         updatePlayerRoundState(currentTurn.value, updatedState)
+
+        //Draw card
         val card = deck.value.drawCard()
         _currentPlayerWithState.value.let { currentPlayerWithState ->
             onAddActivity("Starting turn for '${currentPlayerWithState!!.player.name}'...")
