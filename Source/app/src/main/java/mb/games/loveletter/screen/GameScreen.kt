@@ -101,7 +101,7 @@ fun GameView(
                                 items(cardTypes) {
                                     val card = it.card
                                     Text(modifier = Modifier.clickable {
-                                        viewModel.onGuessHand(it)
+                                        viewModel.onGuardGuessHand(it)
                                     }, text = card.name)
                                 }
                             }
@@ -131,7 +131,7 @@ fun GameView(
                                     Text(modifier = Modifier.clickable {
                                         when (playingCard) {
                                             CardType.Baron -> {
-                                                viewModel.onCompareHands(it)
+                                                viewModel.onBaronCompareHands(it)
                                             }
 
                                             CardType.Guard -> {

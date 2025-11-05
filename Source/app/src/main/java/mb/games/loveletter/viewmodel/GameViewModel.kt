@@ -348,7 +348,7 @@ class GameViewModel(
             onAddActivity("just after collect latest for baron")
         } else {
             _targetPlayer.value = eligibleTargets.random()
-            onCompareHands(_targetPlayer.value!!)
+            onBaronCompareHands(_targetPlayer.value!!)
         }
     }
 
@@ -372,7 +372,7 @@ class GameViewModel(
         } else {
             val target = eligibleTargets.random()
             showCardTypes(target, CardType.Guard)
-            onGuessHand(CardType.entries.toTypedArray().random())
+            onGuardGuessHand(CardType.entries.toTypedArray().random())
         }
     }
 
@@ -549,7 +549,7 @@ class GameViewModel(
 
     }
 
-    fun onGuessHand(cardType: CardType) {
+    fun onGuardGuessHand(cardType: CardType) {
         targetPlayer.value?.let {
             val targetPlayerWithGameState =
                 playersWithState.value.find { it.player.id == targetPlayer.value!!.playerId }!!
@@ -595,7 +595,7 @@ class GameViewModel(
         }
     }
 
-    fun onCompareHands(target: PlayerRoundState) {
+    fun onBaronCompareHands(target: PlayerRoundState) {
         selectTarget(target)
         val currentPlayerRoundState = getCurrentPlayerRoundState()
         val currentPlayerGameState = getCurrentPlayerWithGameState()
