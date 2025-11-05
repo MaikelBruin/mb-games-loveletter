@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,9 +22,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import mb.games.loveletter.R
 import mb.games.loveletter.data.CardType
 import mb.games.loveletter.data.Cards
 import mb.games.loveletter.data.Player
@@ -113,7 +119,19 @@ fun GameView(
                                             initial = Player(name = "")
                                         )
                                     Text(modifier = Modifier.clickable {
-                                        viewModel.showCardTypes(it, playingCard!!)
+                                        when (playingCard) {
+                                            CardType.Baron -> {
+                                                viewModel.onCompareHands(it)
+                                            }
+
+                                            CardType.Guard -> {
+                                                viewModel.showCardTypes(it, playingCard!!)
+                                            }
+
+                                            else -> {
+                                                viewModel.onAddActivity("else branch")
+                                            }
+                                        }
                                     }, text = player.value.name)
                                 }
                             }
@@ -140,37 +158,54 @@ fun GameView(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Start
             ) {
+                if (humanPlayerRoundState?.isAlive == null || humanPlayerRoundState?.isAlive == true) {
+                    Column {
+                        var cardsInHand = emptyList<Cards>()
+                        if (humanPlayerRoundState != null) {
+                            val hand = humanPlayerRoundState!!.hand
+                            cardsInHand = Cards.fromIds(hand)
+                        }
+                        Row {
+                            Text(text = "My card(s): ")
+                            Text(text = cardsInHand.map { card -> card.cardType.name }.toString())
+                        }
 
-                Column {
-                    var cardsInHand = emptyList<Cards>()
-                    if (humanPlayerRoundState != null) {
-                        val hand = humanPlayerRoundState!!.hand
-                        cardsInHand = Cards.fromIds(hand)
-                    }
-                    Row {
-                        Text(text = "My card(s): ")
-                        Text(text = cardsInHand.map { card -> card.cardType.name }.toString())
-                    }
-
-                    LazyRow {
-                        items(cardsInHand) { card ->
-                            CardItemView(card = card, onClick = {
-                                if (roundEnded) {
-                                    viewModel.onAddActivity("Cannot play card, round has ended")
-                                } else {
-                                    if (playingCard == CardType.Chancellor) {
-                                        viewModel.onChancellorReturnCardToDeck(
-                                            humanPlayerRoundState!!.playerId,
-                                            card.id
-                                        )
+                        LazyRow {
+                            items(cardsInHand) { card ->
+                                CardItemView(card = card, onClick = {
+                                    if (roundEnded) {
+                                        viewModel.onAddActivity("Cannot play card, round has ended")
                                     } else {
-                                        viewModel.onPlayCard(card)
+                                        if (playingCard == CardType.Chancellor) {
+                                            viewModel.onChancellorReturnCardToDeck(
+                                                humanPlayerRoundState!!.playerId,
+                                                card.id
+                                            )
+                                        } else {
+                                            viewModel.onPlayCard(card)
+                                        }
                                     }
-                                }
-                            })
+                                })
+                            }
+                        }
+                    }
+                } else {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("You are dead")
+                            Icon(
+                                painter = painterResource(id = R.drawable.outline_bedtime_24),
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                contentDescription = "player is dead"
+                            )
+
                         }
                     }
                 }
+
+
             }
         }
         //right
