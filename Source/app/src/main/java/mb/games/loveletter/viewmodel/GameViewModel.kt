@@ -255,6 +255,7 @@ class GameViewModel(
             when (card.cardType) {
                 CardType.Spy -> {
                     onAddActivity("Playing card: spy...")
+                    //spy will be discarded and discarded cards are checked at the end of the round
                 }
 
                 CardType.Guard -> {
@@ -281,6 +282,7 @@ class GameViewModel(
 
                 CardType.Prince -> {
                     onAddActivity("Playing card: prince...")
+                    onPlayPrince()
                 }
 
                 CardType.Chancellor -> {
@@ -305,8 +307,32 @@ class GameViewModel(
         }
     }
 
+    private suspend fun onPlayPrince() {
+        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Prince)
+        if (eligibleTargets.isEmpty()) {
+            onAddActivity("Cannot play prince, no eligible targets.")
+            return
+        }
+
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        if (currentPlayerGameState.player.isHuman) {
+            _playingCard.value = CardType.Prince
+            _eligibleTargetPlayers.value = eligibleTargets
+            playingCard.collectLatest { playingCard ->
+                if (playingCard == null && _eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null) {
+                    return@collectLatest
+                }
+            }
+            onAddActivity("just after collect latest for prince")
+        } else {
+            val targetPlayer = eligibleTargets.random()
+            val targetPlayerRoundState = playerRoundStates.value[targetPlayer.playerId]
+            onPrinceDiscardAndRedraw(Cards.fromId(targetPlayerRoundState!!.hand[0]), targetPlayer.playerId)
+        }
+    }
+
     private suspend fun onPlayPriest() {
-        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Baron)
+        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Priest)
         if (eligibleTargets.isEmpty()) {
             onAddActivity("Cannot play priest, no eligible targets.")
             return
@@ -442,51 +468,41 @@ class GameViewModel(
         return result
     }
 
+    fun onPrinceDiscardAndRedraw(card: Cards, targetPlayerId: Long) {
+        onDiscardCard(card, targetPlayerId)
+        onAddActivity("Drawing new card for player hit by prince...")
+        //TODO: if deck is empty, player should be able to draw the facedown card
+        val card = deck.value.drawCard()
+        onDealCardToPlayer(targetPlayerId, card!!.id)
+
+        //update hand
+        val currentState = getPlayerRoundState(targetPlayerId)
+        val updatedState = currentState.copy(
+            hand = currentState.hand + card.id
+        )
+        updatePlayerRoundState(targetPlayerId, updatedState)
+
+        //reset state
+        _playingCard.value = null
+        _targetPlayer.value = null
+        _eligibleTargetPlayers.value = emptyList()
+        currentPlayerWithState.value?.player?.let {
+            if (it.isHuman) {
+                onEndTurn()
+            }
+        }
+    }
+
     /**
      * Can be any player
      */
-    private fun onDiscardCard(card: Cards, executingPlayerId: Long) {
-        when (card.cardType) {
-            CardType.Spy -> {
-                onAddActivity("Discarding card: spy...")
-            }
-
-            CardType.Guard -> {
-                onAddActivity("Discarding card: guard...")
-            }
-
-            CardType.Priest -> {
-                onAddActivity("Discarding card: priest...")
-            }
-
-            CardType.Baron -> {
-                onAddActivity("Discarding card: baron...")
-            }
-
-            CardType.Handmaid -> {
-                onAddActivity("Discarding card: handmaid...")
-            }
-
-            CardType.Prince -> {
-                onAddActivity("Discarding card: prince...")
-            }
-
-            CardType.Chancellor -> {
-                onAddActivity("Discarding card: chancellor...")
-            }
-
-            CardType.King -> {
-                onAddActivity("Discarding card: king...")
-            }
-
-            CardType.Countess -> {
-                onAddActivity("Discarding card: countess...")
-            }
-
-            CardType.Princess -> {
-                onAddActivity("Discarding card: princess...")
-                eliminatePlayer(executingPlayerId)
-            }
+    fun onDiscardCard(card: Cards, executingPlayerId: Long) {
+        val executingPlayer = getPlayerWithGameState(executingPlayerId)
+        onAddActivity("Discarding card: ${card.cardType.name} for player '${executingPlayer.player.name}'...")
+        //discarding princess means you are dead, immediately
+        if (card.cardType == CardType.Princess) {
+            eliminatePlayer(executingPlayerId)
+            return
         }
 
         //update hand and discard pile
@@ -496,10 +512,10 @@ class GameViewModel(
             discardPile = currentState.discardPile + card.id
         )
         updatePlayerRoundState(executingPlayerId, updatedState)
-
     }
 
     private fun eliminatePlayer(playerId: Long) {
+        //TODO: when eliminated, the eliminated player needs to discard his hand faceup without resolving card effects
         val playerWithGameState = getPlayerWithGameState(playerId)
         onAddActivity("Eliminating player '${playerWithGameState.player.name}'...")
         _playerRoundStates.update { states ->
