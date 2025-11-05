@@ -90,8 +90,6 @@ class GameViewModel(
     val currentPlayerWithState: StateFlow<PlayerWithGameState?> =
         _currentPlayerWithState.asStateFlow()
 
-    //Priest
-
     //human player
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
     val humanPlayerWithState: StateFlow<PlayerWithGameState?> = _humanPlayerWithState.asStateFlow()
@@ -103,6 +101,13 @@ class GameViewModel(
         combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
             humanPlayerWithState?.let { states[it.player.id] }  // Get human player's state if the ID exists
         }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    //Priest
+    val showingEnemyHand: StateFlow<Boolean> =
+        combine(_playingCard, _targetPlayer) { playingCard, targetPlayer ->
+            playingCard == CardType.Priest && targetPlayer != null
+        }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
 
     fun onPlayerNameChanged(newName: String) {
         playerNameState = newName
@@ -316,10 +321,11 @@ class GameViewModel(
                     return@collectLatest
                 }
             }
-            onAddActivity("just after collect latest for baron")
+            onAddActivity("just after collect latest for priest")
         } else {
-            _targetPlayer.value = eligibleTargets.random()
-            onShowHand(_targetPlayer.value!!)
+            val targetPlayerWithGameState = getPlayerWithGameState(eligibleTargets.random().playerId)
+            onAddActivity(" Not showing hand of '${targetPlayerWithGameState.player.name}' to bot '${currentPlayerGameState.player.name}'...")
+            onAddActivity("Finished playing priest...");
         }
     }
 
@@ -568,23 +574,20 @@ class GameViewModel(
         }
     }
 
-    fun onShowHand(target: PlayerRoundState) {
+    fun onPriestShowHand(target: PlayerRoundState) {
         selectTarget(target)
-        val currentPlayerRoundState = getCurrentPlayerRoundState()
         val currentPlayerGameState = getCurrentPlayerWithGameState()
-        targetPlayer.value?.let { it ->
-            val targetPlayerRoundState = playerRoundStates.value[it.playerId]
+        targetPlayer.value?.let { _ ->
             val targetPlayerWithGameState =
                 playersWithState.value.find { it.player.id == targetPlayer.value!!.playerId }!!
             onAddActivity("Showing hand of '${targetPlayerWithGameState.player.name}' to '${currentPlayerGameState.player.name}'")
-
         }
+    }
 
-        //restore state after playing guard
+    fun onPriestHandIsSeen() {
+        _targetPlayer.value = null;
+        _playingCard.value = null;
         onAddActivity("Finished playing priest...")
-        _cardTypes.value = emptyList()
-        _targetPlayer.value = null
-        _playingCard.value = null
         currentPlayerWithState.value?.player?.let {
             if (it.isHuman) {
                 onEndTurn()
@@ -604,10 +607,10 @@ class GameViewModel(
             val comparison =
                 currentPlayerRoundState.hand[0].compareTo(targetPlayerRoundState!!.hand[0])
             if (comparison > 0) {
-                onAddActivity("Player '${currentPlayerGameState.player.name}' won!")
+                onAddActivity("Player '${currentPlayerGameState.player.name}' won the baron duel!")
                 eliminatePlayer(targetPlayerRoundState.playerId)
             } else if (comparison < 0) {
-                onAddActivity("Player '${targetPlayerWithGameState.player.name}' won!")
+                onAddActivity("Player '${targetPlayerWithGameState.player.name}' won the baron duel!")
                 eliminatePlayer(currentPlayerRoundState.playerId)
             } else {
                 onAddActivity("It's a tie, both players are still alive!")

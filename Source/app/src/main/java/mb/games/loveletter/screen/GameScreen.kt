@@ -25,8 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.R
 import mb.games.loveletter.data.CardType
@@ -61,6 +59,8 @@ fun GameView(
     val roundEnded by viewModel.roundEnded.collectAsState()
     val gameEnded by viewModel.gameEnded.collectAsState()
     val eligibleTargets by viewModel.eligibleTargetPlayers.collectAsState()
+    val targetPlayer by viewModel.targetPlayer.collectAsState()
+    val showingEnemyHand by viewModel.showingEnemyHand.collectAsState()
     val cardTypes by viewModel.cardTypes.collectAsState()
     val playingCard by viewModel.playingCard.collectAsState()
 
@@ -108,6 +108,16 @@ fun GameView(
                         }
                     }
                     Row {
+                        if (showingEnemyHand) {
+                            Text(
+                                text = "Hand of player '${targetPlayer!!.playerId}': '${Cards.fromId(targetPlayer!!.hand[0]).cardType}'",
+                                modifier = Modifier.clickable {
+                                    viewModel.onPriestHandIsSeen()
+                                }
+                            )
+                        }
+                    }
+                    Row {
                         if (eligibleTargets.isNotEmpty()) {
                             Text(
                                 text = "Eligible targets:"
@@ -126,6 +136,10 @@ fun GameView(
 
                                             CardType.Guard -> {
                                                 viewModel.showCardTypes(it, playingCard!!)
+                                            }
+
+                                            CardType.Priest -> {
+                                                viewModel.onPriestShowHand(it)
                                             }
 
                                             else -> {
