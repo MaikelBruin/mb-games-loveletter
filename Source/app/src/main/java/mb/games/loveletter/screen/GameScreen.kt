@@ -109,12 +109,20 @@ fun GameView(
                     }
                     Row {
                         if (showingEnemyHand) {
-                            Text(
-                                text = "Hand of player '${targetPlayer!!.playerId}': '${Cards.fromId(targetPlayer!!.hand[0]).cardType}'",
-                                modifier = Modifier.clickable {
-                                    viewModel.onPriestHandIsSeen()
-                                }
-                            )
+                            val targetPlayerName =
+                                playersWithGameState.find { it.player.id == targetPlayer!!.playerId }!!.player.name
+                            val targetPlayerCardType = Cards.fromId(targetPlayer!!.hand[0]).cardType
+                            Column {
+                                Text(
+                                    text = "Hand of player '$targetPlayerName': '$targetPlayerCardType'",
+                                )
+                                Text(
+                                    text = "Ok, seen it",
+                                    modifier = Modifier.clickable {
+                                        viewModel.onPriestHandIsSeen()
+                                    }
+                                )
+                            }
                         }
                     }
                     Row {

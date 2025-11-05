@@ -323,7 +323,8 @@ class GameViewModel(
             }
             onAddActivity("just after collect latest for priest")
         } else {
-            val targetPlayerWithGameState = getPlayerWithGameState(eligibleTargets.random().playerId)
+            val targetPlayerWithGameState =
+                getPlayerWithGameState(eligibleTargets.random().playerId)
             onAddActivity(" Not showing hand of '${targetPlayerWithGameState.player.name}' to bot '${currentPlayerGameState.player.name}'...")
             onAddActivity("Finished playing priest...");
         }
@@ -672,10 +673,13 @@ class GameViewModel(
 
             //determine winners
             if (turnOrder.value.size == 1) {
+                //Win by eliminating all other players
                 val roundWinner = turnOrder.value[0]
                 roundWinners.add(roundWinner)
-                onAddActivity("Player with id '$roundWinner' wins! All other players are eliminated.")
+                val roundWinnerPlayer = playersWithState.value.find { it.player.id == roundWinner }
+                onAddActivity("Player '${roundWinnerPlayer!!.player.name}' wins! All other players are eliminated.")
             } else {
+                //Win by card rank
                 val winningPlayer = playerRoundStates.value.values
                     .filter { it.isAlive }
                     .maxByOrNull { playerRoundState -> Cards.fromId(playerRoundState.hand[0]).cardType.card.value }!!
