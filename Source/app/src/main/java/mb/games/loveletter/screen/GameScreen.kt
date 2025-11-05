@@ -25,8 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mb.games.loveletter.R
 import mb.games.loveletter.data.CardType
@@ -61,6 +59,8 @@ fun GameView(
     val roundEnded by viewModel.roundEnded.collectAsState()
     val gameEnded by viewModel.gameEnded.collectAsState()
     val eligibleTargets by viewModel.eligibleTargetPlayers.collectAsState()
+    val targetPlayer by viewModel.targetPlayer.collectAsState()
+    val showingEnemyHand by viewModel.showingEnemyHand.collectAsState()
     val cardTypes by viewModel.cardTypes.collectAsState()
     val playingCard by viewModel.playingCard.collectAsState()
 
@@ -101,9 +101,27 @@ fun GameView(
                                 items(cardTypes) {
                                     val card = it.card
                                     Text(modifier = Modifier.clickable {
-                                        viewModel.onGuessHand(it)
+                                        viewModel.onGuardGuessHand(it)
                                     }, text = card.name)
                                 }
+                            }
+                        }
+                    }
+                    Row {
+                        if (showingEnemyHand) {
+                            val targetPlayerName =
+                                playersWithGameState.find { it.player.id == targetPlayer!!.playerId }!!.player.name
+                            val targetPlayerCardType = Cards.fromId(targetPlayer!!.hand[0]).cardType
+                            Column {
+                                Text(
+                                    text = "Hand of player '$targetPlayerName': '$targetPlayerCardType'",
+                                )
+                                Text(
+                                    text = "Ok, seen it",
+                                    modifier = Modifier.clickable {
+                                        viewModel.onPriestHandIsSeen()
+                                    }
+                                )
                             }
                         }
                     }
@@ -121,11 +139,15 @@ fun GameView(
                                     Text(modifier = Modifier.clickable {
                                         when (playingCard) {
                                             CardType.Baron -> {
-                                                viewModel.onCompareHands(it)
+                                                viewModel.onBaronCompareHands(it)
                                             }
 
                                             CardType.Guard -> {
                                                 viewModel.showCardTypes(it, playingCard!!)
+                                            }
+
+                                            CardType.Priest -> {
+                                                viewModel.onPriestShowHand(it)
                                             }
 
                                             else -> {
