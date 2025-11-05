@@ -90,6 +90,8 @@ class GameViewModel(
     val currentPlayerWithState: StateFlow<PlayerWithGameState?> =
         _currentPlayerWithState.asStateFlow()
 
+    //Priest
+
     //human player
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
     val humanPlayerWithState: StateFlow<PlayerWithGameState?> = _humanPlayerWithState.asStateFlow()
@@ -257,6 +259,7 @@ class GameViewModel(
 
                 CardType.Priest -> {
                     onAddActivity("Playing card: priest...")
+                    onPlayPriest()
                 }
 
                 CardType.Baron -> {
@@ -294,6 +297,29 @@ class GameViewModel(
                 }
             }
             onEndTurn()
+        }
+    }
+
+    private suspend fun onPlayPriest() {
+        val eligibleTargets = getEligiblePlayersForCardEffect(currentTurn.value, CardType.Baron)
+        if (eligibleTargets.isEmpty()) {
+            onAddActivity("Cannot play priest, no eligible targets.")
+            return
+        }
+
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        if (currentPlayerGameState.player.isHuman) {
+            _playingCard.value = CardType.Priest
+            _eligibleTargetPlayers.value = eligibleTargets
+            playingCard.collectLatest { playingCard ->
+                if (playingCard == null || (_eligibleTargetPlayers.value.isEmpty() && _targetPlayer.value == null)) {
+                    return@collectLatest
+                }
+            }
+            onAddActivity("just after collect latest for baron")
+        } else {
+            _targetPlayer.value = eligibleTargets.random()
+            onShowHand(_targetPlayer.value!!)
         }
     }
 
@@ -532,6 +558,30 @@ class GameViewModel(
 
         //restore state after playing guard
         onAddActivity("Finished playing guard...")
+        _cardTypes.value = emptyList()
+        _targetPlayer.value = null
+        _playingCard.value = null
+        currentPlayerWithState.value?.player?.let {
+            if (it.isHuman) {
+                onEndTurn()
+            }
+        }
+    }
+
+    fun onShowHand(target: PlayerRoundState) {
+        selectTarget(target)
+        val currentPlayerRoundState = getCurrentPlayerRoundState()
+        val currentPlayerGameState = getCurrentPlayerWithGameState()
+        targetPlayer.value?.let { it ->
+            val targetPlayerRoundState = playerRoundStates.value[it.playerId]
+            val targetPlayerWithGameState =
+                playersWithState.value.find { it.player.id == targetPlayer.value!!.playerId }!!
+            onAddActivity("Showing hand of '${targetPlayerWithGameState.player.name}' to '${currentPlayerGameState.player.name}'")
+
+        }
+
+        //restore state after playing guard
+        onAddActivity("Finished playing priest...")
         _cardTypes.value = emptyList()
         _targetPlayer.value = null
         _playingCard.value = null
