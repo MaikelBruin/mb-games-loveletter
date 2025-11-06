@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import mb.games.loveletter.R
 import mb.games.loveletter.data.CardType
@@ -148,6 +149,10 @@ fun GameView(
 
                                             CardType.Priest -> {
                                                 viewModel.onPriestShowHand(it)
+                                            }
+
+                                            CardType.Prince -> {
+                                                viewModel.onPrinceDiscardAndRedraw(Cards.fromId(it.hand[0]), it.playerId)
                                             }
 
                                             else -> {
