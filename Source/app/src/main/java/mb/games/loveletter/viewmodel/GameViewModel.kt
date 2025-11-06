@@ -327,7 +327,10 @@ class GameViewModel(
         } else {
             val targetPlayer = eligibleTargets.random()
             val targetPlayerRoundState = playerRoundStates.value[targetPlayer.playerId]
-            onPrinceDiscardAndRedraw(Cards.fromId(targetPlayerRoundState!!.hand[0]), targetPlayer.playerId)
+            onPrinceDiscardAndRedraw(
+                Cards.fromId(targetPlayerRoundState!!.hand[0]),
+                targetPlayer.playerId
+            )
         }
     }
 
@@ -474,13 +477,6 @@ class GameViewModel(
         //TODO: if deck is empty, player should be able to draw the facedown card
         val card = deck.value.drawCard()
         onDealCardToPlayer(targetPlayerId, card!!.id)
-
-        //update hand
-        val currentState = getPlayerRoundState(targetPlayerId)
-        val updatedState = currentState.copy(
-            hand = currentState.hand + card.id
-        )
-        updatePlayerRoundState(targetPlayerId, updatedState)
 
         //reset state
         _playingCard.value = null
