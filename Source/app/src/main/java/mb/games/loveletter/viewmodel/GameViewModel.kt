@@ -90,6 +90,11 @@ class GameViewModel(
     val currentPlayerWithState: StateFlow<PlayerWithGameState?> =
         _currentPlayerWithState.asStateFlow()
 
+    val currentPlayerRoundState: StateFlow<PlayerRoundState?> =
+        combine(_currentTurn, _playerRoundStates) {currentTurn, playerRoundStates ->
+            playerRoundStates[currentTurn]
+        }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     //human player
     private val _humanPlayerWithState = MutableStateFlow<PlayerWithGameState?>(null)
     val humanPlayerWithState: StateFlow<PlayerWithGameState?> = _humanPlayerWithState.asStateFlow()
@@ -101,6 +106,23 @@ class GameViewModel(
         combine(_playerRoundStates, _humanPlayerWithState) { states, humanPlayerWithState ->
             humanPlayerWithState?.let { states[it.player.id] }  // Get human player's state if the ID exists
         }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    //Countess
+    val mustPlayCountess: StateFlow<Boolean> =
+        combine(currentPlayerRoundState, _playingCard) { currentPlayerRoundState, playingCard ->
+                currentPlayerRoundState.let {
+                    val hand = it?.hand
+                    if (hand != null && playingCard != CardType.Chancellor) {
+                        val cards = Cards.fromIds(hand)
+                        val hasKing: Boolean = cards.any { cards -> cards.cardType == CardType.King }
+                        val hasPrince: Boolean = cards.any { cards -> cards.cardType == CardType.Prince }
+                        val countess: Cards? = cards.find { cards -> cards.cardType == CardType.Countess }
+                        countess != null && (hasKing || hasPrince)
+                    } else false
+
+                }
+
+        }.stateIn(viewModelScope, SharingStarted.Lazily, initialValue = false)
 
     //Priest
     val showingEnemyHand: StateFlow<Boolean> =

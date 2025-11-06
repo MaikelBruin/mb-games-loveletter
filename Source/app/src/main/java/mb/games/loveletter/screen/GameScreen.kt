@@ -64,6 +64,7 @@ fun GameView(
     val showingEnemyHand by viewModel.showingEnemyHand.collectAsState()
     val cardTypes by viewModel.cardTypes.collectAsState()
     val playingCard by viewModel.playingCard.collectAsState()
+    val mustPlayCountess by viewModel.mustPlayCountess.collectAsState()
 
     Row(
         modifier = Modifier
@@ -206,6 +207,8 @@ fun GameView(
                                 CardItemView(card = card, onClick = {
                                     if (roundEnded) {
                                         viewModel.onAddActivity("Cannot play card, round has ended")
+                                    } else if (mustPlayCountess && card.cardType != CardType.Countess) {
+                                        viewModel.onAddActivity("You must play the countess because you have a prince or the king in your hand")
                                     } else {
                                         if (playingCard == CardType.Chancellor) {
                                             viewModel.onChancellorReturnCardToDeck(
