@@ -241,7 +241,17 @@ class GameViewModel(
             if (currentPlayerWithState.player.isHuman) {
                 onAddActivity("Play a card")
             } else {
-                onPlayCard(Cards.fromId(getPlayerRoundState(currentPlayerWithState.player.id).hand.random()))
+                //Implementation of countess for bots
+                val playerRoundState = getPlayerRoundState(currentPlayerWithState.player.id)
+                val cards = Cards.fromIds(playerRoundState.hand)
+                val hasKing: Boolean = cards.any { cards -> cards.cardType == CardType.King }
+                val hasPrince: Boolean = cards.any { cards -> cards.cardType == CardType.Prince }
+                val countess: Cards? = cards.find { cards -> cards.cardType == CardType.Countess }
+                if (countess != null && (hasPrince || hasKing)) {
+                    onPlayCard(countess)
+                } else {
+                    onPlayCard(Cards.fromId(playerRoundState.hand.random()))
+                }
             }
         }
     }
