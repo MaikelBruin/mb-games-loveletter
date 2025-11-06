@@ -155,6 +155,10 @@ fun GameView(
                                                 viewModel.onPrinceDiscardAndRedraw(Cards.fromId(it.hand[0]), it.playerId)
                                             }
 
+                                            CardType.King -> {
+                                                viewModel.onKingTradeHands(it)
+                                            }
+
                                             else -> {
                                                 viewModel.onAddActivity("else branch")
                                             }
