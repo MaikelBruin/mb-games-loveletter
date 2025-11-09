@@ -738,7 +738,6 @@ class GameViewModel(
         viewModelScope.launch {
             if (roundEnded.value) {
                 onEndRound()
-                return@launch
             } else {
                 onAddActivity("Ending turn for player '${getCurrentPlayerWithGameState().player.name}'...")
                 val order = _turnOrder.value
@@ -827,13 +826,14 @@ class GameViewModel(
 
         if (gameWinners.isNotEmpty()) {
             onEndGame(gameWinners)
-            return
+        } else {
+            //if game has not ended, update game state and show button to start next round
+            val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
+            gameSessionRepository.updateGameSession(updatedGameSession)
+            //TODO: set turn order based on round winner
         }
 
-        //if game has not ended, update game state and show button to start next round
-        val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
-        gameSessionRepository.updateGameSession(updatedGameSession)
-        //TODO: set turn order based on round winner
+
     }
 
     private fun onEndGame(winners: List<PlayerWithGameState>) {
