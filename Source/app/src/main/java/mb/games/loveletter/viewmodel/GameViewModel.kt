@@ -52,9 +52,6 @@ class GameViewModel(
     private val _activities = MutableStateFlow<List<String>>(emptyList())
     val activities: StateFlow<List<String>> = _activities.asStateFlow()
 
-    private val _roundEnded = MutableStateFlow(false)
-    val roundEnded: StateFlow<Boolean> = _roundEnded.asStateFlow()
-
     private val _gameEnded = MutableStateFlow(false)
     val gameEnded: StateFlow<Boolean> = _gameEnded.asStateFlow()
 
@@ -76,6 +73,11 @@ class GameViewModel(
     val eligibleTargetPlayers: StateFlow<List<PlayerRoundState>> =
         _eligibleTargetPlayers.asStateFlow()
 
+    val roundEnded: StateFlow<Boolean> =
+        combine(deck, playerRoundStates) { deck, playerRoundStates ->
+            deck.getCards().isEmpty() || playerRoundStates.values.count { it.isAlive } == 1
+        }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     //current turn / player
     private val _turnOrder = MutableStateFlow<List<Long>>(emptyList())
     val turnOrder: StateFlow<List<Long>> = _turnOrder.asStateFlow()
@@ -91,7 +93,7 @@ class GameViewModel(
         _currentPlayerWithState.asStateFlow()
 
     val currentPlayerRoundState: StateFlow<PlayerRoundState?> =
-        combine(_currentTurn, _playerRoundStates) {currentTurn, playerRoundStates ->
+        combine(_currentTurn, _playerRoundStates) { currentTurn, playerRoundStates ->
             playerRoundStates[currentTurn]
         }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -110,17 +112,19 @@ class GameViewModel(
     //Countess
     val mustPlayCountess: StateFlow<Boolean> =
         combine(currentPlayerRoundState, _playingCard) { currentPlayerRoundState, playingCard ->
-                currentPlayerRoundState.let {
-                    val hand = it?.hand
-                    if (hand != null && playingCard != CardType.Chancellor) {
-                        val cards = Cards.fromIds(hand)
-                        val hasKing: Boolean = cards.any { cards -> cards.cardType == CardType.King }
-                        val hasPrince: Boolean = cards.any { cards -> cards.cardType == CardType.Prince }
-                        val countess: Cards? = cards.find { cards -> cards.cardType == CardType.Countess }
-                        countess != null && (hasKing || hasPrince)
-                    } else false
+            currentPlayerRoundState.let {
+                val hand = it?.hand
+                if (hand != null && playingCard != CardType.Chancellor) {
+                    val cards = Cards.fromIds(hand)
+                    val hasKing: Boolean = cards.any { cards -> cards.cardType == CardType.King }
+                    val hasPrince: Boolean =
+                        cards.any { cards -> cards.cardType == CardType.Prince }
+                    val countess: Cards? =
+                        cards.find { cards -> cards.cardType == CardType.Countess }
+                    countess != null && (hasKing || hasPrince)
+                } else false
 
-                }
+            }
 
         }.stateIn(viewModelScope, SharingStarted.Lazily, initialValue = false)
 
@@ -193,7 +197,7 @@ class GameViewModel(
     private fun loadActivePlayersWithState(gameSessionId: Long) {
         viewModelScope.launch {
             playerRepository.getActivePlayersWithState(gameSessionId)
-                .collect { _playersWithState.value = it }
+                .collectLatest { _playersWithState.value = it }
         }
     }
 
@@ -223,7 +227,6 @@ class GameViewModel(
 
     suspend fun onStartNewRound(playerIds: List<Long>) {
         onAddActivity("Starting new round...")
-        _roundEnded.value = false
         _playerRoundStates.value = playerIds.associateWith {
             PlayerRoundState(playerId = it)
         }
@@ -675,8 +678,14 @@ class GameViewModel(
             onAddActivity("Trading hand of '${currentPlayerGameState.player.name}' with '${targetPlayerWithGameState.player.name}'")
             val targetPlayerHand = targetPlayerRoundState!!.hand[0]
             val currentPlayerHand = currentPlayerRoundState.hand[0]
-            updatePlayerRoundState(targetPlayerRoundState.playerId, targetPlayerRoundState.copy(hand = listOf(currentPlayerHand)))
-            updatePlayerRoundState(currentPlayerRoundState.playerId, currentPlayerRoundState.copy(hand = listOf(targetPlayerHand)))
+            updatePlayerRoundState(
+                targetPlayerRoundState.playerId,
+                targetPlayerRoundState.copy(hand = listOf(currentPlayerHand))
+            )
+            updatePlayerRoundState(
+                currentPlayerRoundState.playerId,
+                currentPlayerRoundState.copy(hand = listOf(targetPlayerHand))
+            )
         }
 
         //restore state after playing king
@@ -727,7 +736,8 @@ class GameViewModel(
 
     private fun onEndTurn() {
         viewModelScope.launch {
-            if (roundEnded()) {
+            if (roundEnded.value) {
+                onEndRound()
                 return@launch
             } else {
                 onAddActivity("Ending turn for player '${getCurrentPlayerWithGameState().player.name}'...")
@@ -747,99 +757,83 @@ class GameViewModel(
 
     }
 
-    private fun roundEnded(): Boolean {
-        val onlyOneAlive = playerRoundStates.value.values.count { it.isAlive } == 1
-        val deckIsEmpty = deck.value.getCards().isEmpty()
+    private suspend fun onEndRound() {
+        onAddActivity("Round ended!")
+        val roundWinners = mutableListOf<Long>()
 
-        return if (onlyOneAlive || deckIsEmpty) {
-            onAddActivity("Round ended: ${if (onlyOneAlive) "Only one player is alive" else "Deck is empty"}")
-            onEndRound()
-            true
+        //determine winners
+        if (turnOrder.value.size == 1) {
+            //Win by eliminating all other players
+            val roundWinner = turnOrder.value[0]
+            roundWinners.add(roundWinner)
+            val roundWinnerPlayer = playersWithState.value.find { it.player.id == roundWinner }
+            onAddActivity("Player '${roundWinnerPlayer!!.player.name}' wins! All other players are eliminated.")
         } else {
-            false
-        }
-    }
-
-    private fun onEndRound() {
-        viewModelScope.launch {
-            onAddActivity("Round ended!")
-            _roundEnded.value = true
-            val roundWinners = mutableListOf<Long>()
-
-            //determine winners
-            if (turnOrder.value.size == 1) {
-                //Win by eliminating all other players
-                val roundWinner = turnOrder.value[0]
-                roundWinners.add(roundWinner)
-                val roundWinnerPlayer = playersWithState.value.find { it.player.id == roundWinner }
-                onAddActivity("Player '${roundWinnerPlayer!!.player.name}' wins! All other players are eliminated.")
-            } else {
-                //Win by card rank
-                val winningPlayer = playerRoundStates.value.values
+            //Win by card rank
+            val winningPlayer = playerRoundStates.value.values
+                .filter { it.isAlive }
+                .maxByOrNull { playerRoundState -> Cards.fromId(playerRoundState.hand[0]).cardType.card.value }!!
+            val winningPlayerIds =
+                playerRoundStates.value.values
+                    .filter { it.hand[0] == winningPlayer.hand[0] }
+                    .map { it.playerId }
+            roundWinners.addAll(winningPlayerIds)
+            val winningPlayersNames =
+                playersWithState.value.filter { winningPlayerIds.contains(it.player.id) }
+            onAddActivity(
+                "Player(s) '${winningPlayersNames.map { it.player.name }}' win(s) with card '${
+                    Cards.fromId(winningPlayer.hand[0]).cardType.card.name
+                }'"
+            )
+            onAddActivity(
+                "Final cards: " + playerRoundStates.value.values
                     .filter { it.isAlive }
-                    .maxByOrNull { playerRoundState -> Cards.fromId(playerRoundState.hand[0]).cardType.card.value }!!
-                val winningPlayerIds =
-                    playerRoundStates.value.values
-                        .filter { it.hand[0] == winningPlayer.hand[0] }
-                        .map { it.playerId }
-                roundWinners.addAll(winningPlayerIds)
-                val winningPlayersNames =
-                    playersWithState.value.filter { winningPlayerIds.contains(it.player.id) }
-                onAddActivity(
-                    "Player(s) '${winningPlayersNames.map { it.player.name }}' win(s) with card '${
-                        Cards.fromId(winningPlayer.hand[0]).cardType.card.name
-                    }'"
-                )
-                onAddActivity(
-                    "Final cards: " + playerRoundStates.value.values
-                        .filter { it.isAlive }
-                        .map {
-                            Cards.fromId(it.hand[0]).cardType.card.name
-                        })
-            }
-
-            //call out round winners
-            val roundWinnerNames = playersWithState.value
-                .filter { roundWinners.contains(it.player.id) }
-                .map { it.player.name }
-            onAddActivity("Round winner(s): '${roundWinnerNames}'")
-
-            //call out spy winner
-            val spyWinner = determineSpyWinner(playerRoundStates.value)
-            if (spyWinner != null) {
-                val spyWinnerName =
-                    playersWithState.value.find { it.player.id == spyWinner.playerId }!!.player.name
-                onAddActivity("Spy winner: '${spyWinnerName}'")
-                roundWinners.add(spyWinner.playerId)
-            }
-
-            //deal out token to round winner(s) and spy winner
-            roundWinners.forEach { roundWinner ->
-                val playerGameState = playerRepository.getPlayerWithState(
-                    roundWinner, activeGameSession.value!!.id
-                ).playerGameState
-                val newPlayerGameState =
-                    playerGameState.copy(favorTokens = playerGameState.favorTokens + 1)
-                playerStateRepository.updatePlayerState(newPlayerGameState)
-            }
-
-            //check if game has ended
-            val gameSession = activeGameSession.value!!
-            loadActivePlayersWithState(gameSession.id) //update needed for determining game end
-            val gameWinners = playersWithState.value.filter {
-                it.playerGameState.favorTokens >= gameSession.tokensToWin
-            }
-
-            if (gameWinners.isNotEmpty()) {
-                onEndGame(gameWinners)
-                return@launch
-            }
-
-            //if game has not ended, update game state and show button to start next round
-            val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
-            gameSessionRepository.updateGameSession(updatedGameSession)
-            //TODO: set turn order based on round winner
+                    .map {
+                        Cards.fromId(it.hand[0]).cardType.card.name
+                    })
         }
+
+        //call out round winners
+        val roundWinnerNames = playersWithState.value
+            .filter { roundWinners.contains(it.player.id) }
+            .map { it.player.name }
+        onAddActivity("Round winner(s): '${roundWinnerNames}'")
+
+        //call out spy winner
+        val spyWinner = determineSpyWinner(playerRoundStates.value)
+        if (spyWinner != null) {
+            val spyWinnerName =
+                playersWithState.value.find { it.player.id == spyWinner.playerId }!!.player.name
+            onAddActivity("Spy winner: '${spyWinnerName}'")
+            roundWinners.add(spyWinner.playerId)
+        }
+
+        //deal out token to round winner(s) and spy winner
+        roundWinners.forEach { roundWinner ->
+            val playerGameState = playerRepository.getPlayerWithState(
+                roundWinner, activeGameSession.value!!.id
+            ).playerGameState
+            val newPlayerGameState =
+                playerGameState.copy(favorTokens = playerGameState.favorTokens + 1)
+            playerStateRepository.updatePlayerState(newPlayerGameState)
+        }
+
+        //check if game has ended
+        val gameSession = activeGameSession.value!!
+        loadActivePlayersWithState(gameSession.id) //update needed for determining game end
+        val gameWinners = playersWithState.value.filter {
+            it.playerGameState.favorTokens >= gameSession.tokensToWin
+        }
+
+        if (gameWinners.isNotEmpty()) {
+            onEndGame(gameWinners)
+            return
+        }
+
+        //if game has not ended, update game state and show button to start next round
+        val updatedGameSession = gameSession.copy(currentRound = gameSession.currentRound++)
+        gameSessionRepository.updateGameSession(updatedGameSession)
+        //TODO: set turn order based on round winner
     }
 
     private fun onEndGame(winners: List<PlayerWithGameState>) {
