@@ -906,32 +906,34 @@ class GameViewModel(
     }
 
     //Game sessions
-    suspend fun onStartNewGame(playerIds: List<Long>) {
-        _gameEnded.value = false
-        _deck.value = Deck.createNewDeck()
-        _activities.value = emptyList()
-        val turnOrder = playerIds.shuffled()
-        val gameSession = GameSession(
-            playerIds = playerIds,
-            turnOrder = turnOrder,
-            tokensToWin = getNumberOfTokensToWin(playerIds.size),
-            isActive = true
-        )
-
-        // Create player states in db
-        // and create player round states in memory
-        playerIds.forEach { playerId ->
-            val playerState = PlayerGameState(
-                gameSessionId = gameSession.id, playerId = playerId
+    fun onStartNewGame(playerIds: List<Long>) {
+        viewModelScope.launch {
+            _gameEnded.value = false
+            _deck.value = Deck.createNewDeck()
+            _activities.value = emptyList()
+            val turnOrder = playerIds.shuffled()
+            val gameSession = GameSession(
+                playerIds = playerIds,
+                turnOrder = turnOrder,
+                tokensToWin = getNumberOfTokensToWin(playerIds.size),
+                isActive = true
             )
-            playerStateRepository.insertPlayerState(playerState)
+
+            // Create player states in db
+            // and create player round states in memory
+            playerIds.forEach { playerId ->
+                val playerState = PlayerGameState(
+                    gameSessionId = gameSession.id, playerId = playerId
+                )
+                playerStateRepository.insertPlayerState(playerState)
+            }
+
+            //update state
+            _activeGameSession.value = gameSession
+
+            //start round
+            onStartNewRound(playerIds)
         }
-
-        //update state
-        _activeGameSession.value = gameSession
-
-        //start round
-        onStartNewRound(playerIds)
     }
 
     //SUSPEND FUNCTIONS

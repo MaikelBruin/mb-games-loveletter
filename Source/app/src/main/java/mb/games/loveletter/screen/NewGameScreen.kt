@@ -68,10 +68,12 @@ fun NewGameView(
 ) {
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
-    Scaffold(scaffoldState = scaffoldState,
+    Scaffold(
+        scaffoldState = scaffoldState,
         backgroundColor = Bordeaux,
         floatingActionButton = {
-            FloatingActionButton(modifier = Modifier.padding(all = 20.dp),
+            FloatingActionButton(
+                modifier = Modifier.padding(all = 20.dp),
                 contentColor = Color.Black,
                 backgroundColor = Color.LightGray,
                 onClick = {
@@ -113,7 +115,8 @@ fun NewGameView(
                                 true
                             })
 
-                            SwipeToDismiss(state = dismissState,
+                            SwipeToDismiss(
+                                state = dismissState,
                                 background = {
                                     val color by animateColorAsState(
                                         if (dismissState.dismissDirection == DismissDirection.EndToStart) Color.Red else Color.Transparent,
@@ -154,9 +157,7 @@ fun NewGameView(
                     MenuItemView(menuItem = menuItem, onClick = {
                         when (menuItem.name) {
                             "Start game" -> {
-                                viewModel.viewModelScope.launch {
-                                    viewModel.onStartNewGame(players.value.map { player -> player.id })
-                                }
+                                viewModel.onStartNewGame(players.value.map { player -> player.id })
                                 onStartGame()
                             }
 
